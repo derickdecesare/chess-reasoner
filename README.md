@@ -41,7 +41,26 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
 - **GPUs**
   - Cloud or on-premise. At least one high-memory GPU if possible (e.g., 24GB+), since a 7B model can be large in VRAM.
 - **Multi-GPU or Distributed Setup (Optional)**
+
   - If you want faster RL training, consider multi-GPU (e.g., using DeepSpeed or another parallel framework).
+
+  ### Cloud Options:
+
+  ✅ RunPod Pros:
+
+- Simple setup
+- Pay-per-use
+- Good GPU options (A100s, H100s)
+- Docker-based (portable)
+- SSH access
+
+❌ GCP/Azure Cons:
+
+- Complex setup
+- Ongoing costs
+- More overhead
+
+## Were going to use RUNPOD
 
 ---
 
