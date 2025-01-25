@@ -17,3 +17,5 @@ RUN pip install chess
 RUN pip install accelerate
 RUN pip install tqdm
 RUN pip install wandb
+RUN pip install stockfish
+RUN pip install psutil

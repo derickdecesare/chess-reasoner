@@ -10,6 +10,22 @@ docker run --rm -it chess-reasoner bash
 
 docker run --rm -it -v $(pwd)/src:/workspace/src chess-reasoner bash
 
+# with more memory 16g of ram
+
+docker run --rm -it --memory=16g -v $(pwd)/src:/workspace/src chess-reasoner bash
+
+# and creates volume for model cache so it persists between restarts
+
+docker run --rm -it --memory=16g --memory-swap=16g -v $(pwd)/src:/workspace/src chess-reasoner bash
+
+# forces zero swap
+
+docker run --rm -it \
+ --memory=20g \
+ --memory-swap=20g \
+ -v $(pwd)/src:/workspace/src \
+ chess-reasoner bash
+
 # Dev workflow:
 
 1. Start dev container with file sync (command above)

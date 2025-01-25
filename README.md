@@ -151,3 +151,90 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
 
 - **Costs**
   - Watch out for GPU usage and time spent calling Stockfish.
+
+### baseline measurements
+
+we should have the instruct version of qwen play some chess games against different levels of stockfish to get a baseline on how good they are at playing chess already...
+
+we could even compare with small versions of llama as well to see which one has better abilities for chess already..
+
+we could consider doing a basic fine tune on the base models if we want to ensure reliable output format, but I think the instruct fine tunes should probably be sufficient -- since there is evidence that basic instruction fine tunes doesn't cause catestropic chess forgetting like rlhf does.. unless the basic finetune with the instruct models does contain rlhf as well.. so we would need to test and verify..
+
+Would be even good to try to get some baselines established for the deepseek r1 models as well.. to see if their reasoning rl feedback improved their chess playing abilities..
+
+basically need to set up a script that will deal with all of the nightmare formatting to get these things to play against different level of stockfish..
+
+we will need to do these before we start training so that we can understand if the darn thing is actually improving at chess
+
+## pod plan
+
+A100 80GB: ~$1.99/hour
+Start with single A100 80GB for:
+3B model experiments (plenty of headroom)
+7B model training (comfortable fit)
+14B model with reduced batch size or gradient accumulation
+When ready for full 14B training:
+Upgrade to 2x A100 80GB setup
+This gives you the headroom needed for full batch training
+
+### A100 GPU Options Trade-off
+
+**A100 PCIe ($1.64/hr)**
+
+- 80GB VRAM, 8 vCPUs, 117GB RAM
+- High availability
+- Good for sequential processing
+
+**A100 SXM ($1.89/hr)**
+
+- 80GB VRAM, 16 vCPUs, 125GB RAM
+- Low availability
+- Better for parallel processing
+
+The extra $0.25/hr (~$6/day) for SXM gets you 2x CPU cores, which could be valuable if running many parallel Stockfish evaluations or processing large batch sizes. For more sequential workloads, the PCIe version should suffice.
+
+## minimal plan for rl loop locally
+
+# Example minimal test setup
+
+def test_rl_components(): # Test with tiny model (or dummy model)
+tiny_model = "Qwen/Qwen2.5-0.5B-Instruct" or Qwen/Qwen2.5-0.5B
+
+    # Test reward calculation
+    def test_reward_function():
+        stockfish = Stockfish()
+        # Test various positions and moves
+
+    # Test training loop without actual training
+    def test_training_loop():
+        # Use small batch size
+        # Verify data flow
+        # Check logging
+
+    # Test format validation
+    def test_move_formatting():
+        # Verify think/answer tags
+        # Check move parsing
+
+## Development & Testing Pipeline
+
+### 1. Local Development (Mac/MPS)
+
+- Initial development with MPS acceleration
+- Test core logic and training loop
+- Debug reward functions
+- Verify memory management
+
+### 2. Local Docker Testing
+
+- Validate container builds
+- Test dependencies and Stockfish
+- Verify data mounting
+- Ensure environment consistency
+
+### 3. RunPod Deployment
+
+- Deploy only after local testing passes
+- Start with short training runs
+- Monitor GPU utilization
+- Track costs
