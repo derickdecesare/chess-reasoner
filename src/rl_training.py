@@ -49,7 +49,15 @@ class ChessRLTrainer:
             max_new_tokens=200,  # Increased to allow for thinking process
             temperature=temperature,
             do_sample=True,
-            pad_token_id=self.tokenizer.eos_token_id
+            pad_token_id=self.tokenizer.eos_token_id,
+            eos_token_id=self.tokenizer.eos_token_id,
+            # Add repetition penalty to prevent loops
+            repetition_penalty=1.2,
+            # Add number of beams for more focused generation
+            num_beams=1,
+            # Early stopping helps prevent rambling
+            early_stopping=True
+
         )
         
         return self.tokenizer.decode(outputs[0])
