@@ -86,3 +86,7 @@ b) **Format Rewards**:
 - **Format**: Model consistently produces valid XML-like structures.
 - **Chess Reasoning**: Moves are significantly better than random, validated by a chess engine or a heuristic score.
 - **Scaling**: Approach remains stable on single-GPU training for model sizes up to ~7B or 14B parameters.
+
+## NOtes to verify..
+
+in gpro we sample the same position multiple times and then compare the rewards for each response??

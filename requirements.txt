@@ -13,8 +13,16 @@ protobuf  # For model loading
 stockfish>=3.28.0  # Python wrapper for Stockfish chess engine
 chess
 
+# Data handling
+pandas
+pyarrow  # Required for parquet file support
+tqdm     # For progress bars
+matplotlib
+
+
 # API dependencies
 openai>=1.12.0
 anthropic>=0.18.1
 python-dotenv>=1.0.0
+
 

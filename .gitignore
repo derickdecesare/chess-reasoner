@@ -54,6 +54,12 @@ weights/
 *.sqlite
 *.db
 
+lichess_db_standard_rated_2024-10.pgn.zst
+
+logs/
+checkpoints/
+wandb/
+
 # Environment variables
 .env
 .env.local

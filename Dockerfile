@@ -19,3 +19,5 @@ RUN pip install tqdm
 RUN pip install wandb
 RUN pip install stockfish
 RUN pip install psutil
+RUN pip install pandas
+RUN pip install pyarrow

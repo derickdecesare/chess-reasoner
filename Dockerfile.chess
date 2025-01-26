@@ -1,0 +1,16 @@
+FROM nvcr.io/nvidia/pytorch:24.05-py3
+
+# Core dependencies
+RUN pip3 install --no-cache-dir \
+    torch==2.4.0 \
+    accelerate \
+    hydra-core \
+    transformers<=4.46.0 \
+    vllm==0.6.3 \
+    wandb==0.18.7 \
+    python-chess \  # Added for chess
+    stockfish      # Added for chess engine
+
+# Ray and Flash Attention
+RUN pip3 install --no-cache-dir flash-attn==2.7.0.post2
+RUN pip3 install --no-cache-dir vllm==0.6.3 ray==2.10
