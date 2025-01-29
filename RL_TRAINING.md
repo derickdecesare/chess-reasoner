@@ -90,3 +90,36 @@ b) **Format Rewards**:
 ## NOtes to verify..
 
 in gpro we sample the same position multiple times and then compare the rewards for each response??
+
+# other ideas
+
+provide partial reward if it is in san format even if it isn't a legal move
+start with basic positions.. like by sorting our dataset by length or something like that
+maybe provide the fen as well to give the model more context
+the instruct model may have catestropic forgeting of it's chess knowledge and we may have to work with the base model and do some fine tuning to be workable with us and then progress into the rl the optimized rewards
+
+O1 thoughts
+– Instead of partial reward for correct syntax alone, require both correct syntax AND a plausible SAN. For instance:
+"If move is purely random or fails a legality check, reward = 0."
+"If it’s valid SAN but still fails the engine’s actual legality check, partial reward < legal move reward."
+
+a) Boost the Weight of Legal-Move Rewards
+– If a correct format yields +0.1 reward but a legal move yields +1.0 reward, the model has more motivation to find a valid move.
+
+c) Use Curriculum (Simplify the Chess Task)
+– Start with extremely simple positions (like a forced mate in 1) so the model quickly sees big positive rewards for the correct move. That helps bootstrap it out of random nonsense.
+d) Possibly Fine-Tune the Model to Output Legal SAN Moves
+– If the model doesn’t know how to produce legal moves at all, you might do a brief supervised fine-tuning pass on valid SAN sequences from a known game dataset. Then add RL to refine.
+
+“Parallelization” notes
+“Parallelization” in RL typically means generating experiences simultaneously from multiple environment instances or “actors,” so the agent sees more data per unit time.
+– For example, 8 parallel chess boards, each generating moves, so in a single minute you get 8× the experiences.
+• “Batch Size” is how many examples (or experiences) you pass to your network in one forward/backward pass.
+• For a large language model + chess, you mainly want to avoid slow single-threaded data collection. So some form of concurrency or parallel environment rollout is beneficial if the environment is your bottleneck.
+
+• Libraries like Ray RLlib, Stable Baselines3, PettingZoo (for multi-agent), or Hugging Face’s RL libraries often provide built-in tools to:
+– Launch many environment instances in parallel.
+– Synchronize experiences (rollouts) across processes.
+– Perform policy updates on the aggregated experience buffer.
+• In your custom RL approach, you can replicate that by using multiprocessing or distributed data collection, then periodically combining experiences and doing a policy update.
+• Necessity: If your environment (in this case, chess simulations + model inference) is slow to generate data, parallelization speeds up experience gathering significantly. For large models (1.5B+), you also might distribute inference steps across multiple GPUs if needed.

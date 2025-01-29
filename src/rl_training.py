@@ -27,6 +27,9 @@ class ChessRLExperience:
     reward: float
     advantage: Optional[float] = None
 
+
+
+
 class ChessRLTrainer:
     def __init__(
         self,
@@ -36,7 +39,7 @@ class ChessRLTrainer:
         num_positions: int = 8,
         kl_coef: float = 0.001,
         use_wandb: bool = False
-    ):
+        ):
         # Setup logging
         self.setup_logging()
         self.logger.info(f"Initializing ChessRLTrainer with model: {model_name}")
@@ -60,8 +63,12 @@ class ChessRLTrainer:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.float32 if device == "cpu" else torch.float16,
-            device_map="auto" # might need to keep an eye on this if we get shape/device errors
+            torch_dtype=(
+                torch.float32 
+                if self.device in ["cpu", "mps"]  # Use float32 for CPU/MPS
+                else torch.float16  # Use float16 for CUDA
+            ),
+            device_map="auto"
         )
         self.optimizer = torch.optim.AdamW(
         self.model.parameters(),
@@ -84,6 +91,11 @@ class ChessRLTrainer:
         # self.positions = pd.read_parquet(positions_dataset_path) # --> still need to build this dataset
         self.position_index = 0
         self.kl_coef = kl_coef 
+        self.scaler = torch.cuda.amp.GradScaler(enabled=('cuda' in self.device))
+        self.model.config.pad_token_id = self.tokenizer.eos_token_id
+        self.model.config.use_cache = False  # Important for gradient checkpointing
+        torch.set_default_dtype(torch.float32)
+
 
     def setup_logging(self):
         """Setup logging configuration"""
@@ -140,7 +152,7 @@ class ChessRLTrainer:
         Compute reward for a response given the game state
         Returns a float between -1 and 1
         """
-        print(f"Computing reward for response:\n{response}")
+        # print(f"Computing reward for response:\n{response}")
 
 
         # Format reward - check if response follows requested structure
@@ -340,6 +352,36 @@ Then give your chosen move in <answer></answer> tags using standard algebraic no
         self.optimizer.zero_grad()
 
         self.logger.info(f"Starting policy update with {len(experiences)} experiences")
+
+        # Add advantage normalization --> another attempt to fix the invalid log_probs issue --> maybe we would also do this by calculating all of the advantages based on the batch of experiences rather than just one group of local experiences on one position?
+        # this normalized advantages across the entire batch of experiences
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        advantages = advantages.clamp(-5, 5)  # Prevent extreme advantage values
+
+        if 'cuda' in self.device:
+            device_type = 'cuda'
+        elif 'mps' in self.device:
+            device_type = 'mps'
+        else:
+            device_type = 'cpu'
+
+        self.logger.info(f"RL device: {self.device} -> device_type={device_type}")
+
+        # If you want to log actual autocast dtype on CPU/CUDA only:
+        if device_type in ('cuda', 'cpu'):
+            autocast_dtype = torch.get_autocast_dtype(device_type)
+            self.logger.info(f"Autocast config: device={device_type}, dtype={autocast_dtype}")
+        else:
+            self.logger.info("Autocast config: device=mps => no autocast float32")
+
+        # # Determine device type once
+        # device_type = 'cuda' if 'cuda' in self.device else 'mps' if 'mps' in self.device else 'cpu'
+        # if device_type in ('cuda', 'cpu'):
+        #     autocast_dtype = torch.get_autocast_dtype(device_type)
+        #     self.logger.info(f"Autocast config: device={device_type}, dtype={autocast_dtype}")
+        # else:
+        #     self.logger.info("Autocast config: device=mps, float32 only")
+
         
         # Iterate through experiences and their corresponding advantages together
         for i, (exp, advantage) in enumerate(zip(experiences, advantages)):
@@ -389,17 +431,33 @@ Then give your chosen move in <answer></answer> tags using standard algebraic no
             with torch.set_grad_enabled(True):
                 # Forward pass through model
                 # New Approach:
-                outputs = self.model(
-                    input_ids=input_ids,
-                    attention_mask=encoded.attention_mask,
-                    labels=labels
-                )
+
+
+                # this the proposed solution to our invalid log_probs issue
+                # Add logit clamping and numerical stability
+                # it will never actualy use bfloat16 if it's mps cause we disable autocast if not cuda
+                with torch.autocast(
+                        device_type=device_type,
+                        dtype=(torch.float16 if device_type == 'cuda' else torch.bfloat16),
+                        enabled=(device_type == 'cuda')
+                    ):
+                    outputs = self.model(
+                        input_ids=input_ids,
+                        attention_mask=encoded.attention_mask,
+                        labels=labels
+                    )
+
+
                 
                 # Model outputs negative log likelihood loss
                 # We negate it to get log probabilities
                 # outputs.loss is the standard cross-entropy over "response" tokens only
-                log_probs = -outputs.loss 
+                log_probs = -outputs.loss.clamp(min=-1e6, max=1e6)  # Prevent explosion --> another attempt to fix the invalid log_probs issue
+                # log_probs = -outputs.loss 
                 policy_loss = -log_probs * advantage
+
+               
+        
 
 
                  # Add safety checks
@@ -408,20 +466,50 @@ Then give your chosen move in <answer></answer> tags using standard algebraic no
                     continue
                 
 
-                # KL with old policy
-                with torch.no_grad():
-                    old_outputs = old_policy(input_ids=input_ids, attention_mask=encoded.attention_mask)
 
+                # attempt to improve KL divergence calculation with temperature
+                with torch.no_grad():
+                    old_logits = old_policy(input_ids=input_ids, attention_mask=encoded.attention_mask).logits
+                    old_logits = old_logits.to(outputs.logits.dtype)  # Match precision
+                    
+                # Add temperature and clamp
+                temperature = 0.7
+
+
+                log_probs = torch.nn.functional.log_softmax(outputs.logits / temperature, dim=-1)
+                old_log_probs = torch.nn.functional.log_softmax(old_logits / temperature, dim=-1)
+
+                # Use PyTorch's built-in KL with stable reduction
                 kl_div = torch.nn.functional.kl_div(
-                    torch.nn.functional.log_softmax(outputs.logits, dim=-1),
-                    torch.nn.functional.softmax(old_outputs.logits, dim=-1),
-                    reduction='batchmean'
-                )
+                    log_probs,
+                    torch.nn.functional.softmax(old_logits / temperature, dim=-1),
+                    reduction='batchmean',
+                    log_target=False
+                ) * (temperature ** 2)  # Temperature scaling compensation
+                # probs = torch.nn.functional.softmax(outputs.logits / temperature, dim=-1)
+                # old_probs = torch.nn.functional.softmax(old_logits / temperature, dim=-1).clamp(1e-8, 1.0)
+
+                # kl_div = torch.sum(
+                #     probs * (torch.log(probs) - torch.log(old_probs)),
+                #     dim=-1
+                # ).mean()
+
+
+                # # KL with old policy
+                # with torch.no_grad():
+                #     old_outputs = old_policy(input_ids=input_ids, attention_mask=encoded.attention_mask)
+
+                # kl_div = torch.nn.functional.kl_div(
+                #     torch.nn.functional.log_softmax(outputs.logits, dim=-1),
+                #     torch.nn.functional.softmax(old_outputs.logits, dim=-1),
+                #     reduction='batchmean'
+                # )
 
                 # safety check
                 if torch.isnan(kl_div) or torch.isinf(kl_div):
-                    self.logger.warning(f"Invalid KL divergence detected: {kl_div}")
-                    continue
+                    self.logger.error("NaN/Inf detected, aborting batch")
+                    self.optimizer.zero_grad()
+                    raise RuntimeError("Numerical instability detected")
 
             
                 kl_loss = self.kl_coef * kl_div
@@ -435,13 +523,25 @@ Then give your chosen move in <answer></answer> tags using standard algebraic no
                 if torch.isnan(loss) or torch.isinf(loss):
                     self.logger.warning(f"Invalid loss detected: {loss}")
                     continue
+
+
                 # Backward pass and optimize
-                loss.backward()
+                # loss.backward()
+                self.scaler.scale(loss).backward()  # Scaled backward pass
+
+
                 # Handle both complete batches and the last incomplete batch
                 if (i + 1) % accumulation_steps == 0 or (i + 1) == len(experiences):
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
-                    self.optimizer.step()
+
+
+                    # Replace self.optimizer.step() with:
+                    self.scaler.step(self.optimizer)
+                    self.scaler.update()
                     self.optimizer.zero_grad()
+
+                    # self.optimizer.step()
+                    # self.optimizer.zero_grad()
 
                     # Log gradients norm periodically
                     if self.use_wandb:
@@ -449,7 +549,8 @@ Then give your chosen move in <answer></answer> tags using standard algebraic no
                         wandb.log({
                             "gradient_norm": grad_norm,
                             "policy_loss": np.mean(policy_losses[-accumulation_steps:]),
-                            "kl_loss": np.mean(kl_losses[-accumulation_steps:])
+                            "kl_loss": np.mean(kl_losses[-accumulation_steps:]),
+                            "loss_scale": self.scaler.get_scale(),
                         })
 
                 # Add this experience's loss to total (detached from graph)

@@ -22,3 +22,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+# loss_scale (should fluctuate between 2^16 and 2^24)
+# gradient_norm (should stay < 1000)
+# advantages.mean() (should center around 0)
