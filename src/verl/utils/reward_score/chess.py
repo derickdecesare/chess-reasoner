@@ -1,1 +1,0 @@
-# this is where we will set up the rewards functions for chess

@@ -1,0 +1,93 @@
+[
+  {
+    "game_id": 0,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e6 2. a3 d6 3. d4 Nf6 4. Nf3 0-1",
+    "num_moves": 4
+  },
+  {
+    "game_id": 1,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. e3 Nf6 3. d4 g5 4. Nc3 0-1",
+    "num_moves": 4
+  },
+  {
+    "game_id": 2,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 e5 2. c3 Nf6 3. Bg5 e4 4. Nd2 0-1",
+    "num_moves": 4
+  },
+  {
+    "game_id": 3,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 e5 2. dxe5 c6 3. e4 Nf6 4. exf6 Qe7 5. Be3 0-1",
+    "num_moves": 5
+  },
+  {
+    "game_id": 4,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nc3 c6 3. Nf3 d5 4. Nxe5 Qe7 5. Qh5 0-1",
+    "num_moves": 5
+  },
+  {
+    "game_id": 5,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 e5 2. Nc3 c6 3. e4 0-1",
+    "num_moves": 3
+  },
+  {
+    "game_id": 6,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e6 2. a4 d5 3. g3 Nf6 4. a5 Qd7 5. d3 0-1",
+    "num_moves": 5
+  },
+  {
+    "game_id": 7,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e6 2. g3 Nf6 3. Bg2 d5 4. Qb3 e5 5. d3 0-1",
+    "num_moves": 5
+  },
+  {
+    "game_id": 8,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 e5 2. e4 c6 3. Bd3 Nf6 4. Nd2 Qe7 5. Ne2 c5 6. dxc5 Ng8 7. O-O 0-1",
+    "num_moves": 7
+  },
+  {
+    "game_id": 9,
+    "model": "Qwen/Qwen2.5-1.5B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"Qwen/Qwen2.5-1.5B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. a3 d6 3. e3 Nf6 4. Nc3 0-1",
+    "num_moves": 4,
+    "average_num_moves": 4.6
+  }
+]

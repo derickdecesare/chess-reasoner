@@ -1,0 +1,93 @@
+[
+  {
+    "game_id": 0,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Bc4 Nf6 3. Qf3 Nc6 4. Ne2 d5 5. exd5 Nxd5 6. Qxd5 f5 7. Qf7# 0-1",
+    "num_moves": 7
+  },
+  {
+    "game_id": 1,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. a3 d6 3. e3 e4 4. d3 d5 5. Ne2 Be7 6. Nbc3 c5 7. cxd5 Nf6 8. Ng3 Nc6 9. Qb3 Bd7 10. dxc6 Bxc6 11. dxe4 Nxe4 12. Be2 O-O 13. O-O Qd7 14. Ncxe4 Bf6 15. Nxf6+ 0-1",
+    "num_moves": 15
+  },
+  {
+    "game_id": 2,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nf3 d6 3. Bc4 Nf6 4. d4 Nc6 5. d5 Nxd5 6. exd5 0-1",
+    "num_moves": 6
+  },
+  {
+    "game_id": 3,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e5 2. e4 c5 3. d3 0-1",
+    "num_moves": 3
+  },
+  {
+    "game_id": 4,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e5 2. d4 Nf6 3. Bg5 e4 4. Qc2 Nd5 5. Qxe4+ 0-1",
+    "num_moves": 5
+  },
+  {
+    "game_id": 5,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Bc4 d6 3. a4 c5 4. Qe2 Nf6 5. f4 Nc6 6. fxe5 Be7 7. exd6 Nd5 8. exd5 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 6,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e5 2. e4 c5 3. Nf3 Nf6 4. Nxe5 d6 5. Bb5+ Bd7 6. Bxd7+ Qxd7 7. Nxd7 Nc6 8. Nxf6+ gxf6 9. Ke2 0-1",
+    "num_moves": 9
+  },
+  {
+    "game_id": 7,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c3 e5 3. e4 d5 4. exd5 Nxd5 5. Nf3 Nxc3 6. bxc3 Nc6 7. Bd3 Bc5 8. O-O 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 8,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Bc4 Nf6 3. Nc3 Nc6 4. a3 Be7 5. b4 d6 6. d3 d5 7. Nxd5 Nxd5 8. exd5 Qxd5 9. Bxd5 Bf5 10. Bxc6+ 0-1",
+    "num_moves": 10
+  },
+  {
+    "game_id": 9,
+    "model": "llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_10k_cot_1k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 d5 2. Nf3 e6 3. c4 Nf6 4. e3 e5 5. dxe5 Nc6 6. a3 0-1",
+    "num_moves": 6,
+    "average_num_moves": 7.7
+  }
+]

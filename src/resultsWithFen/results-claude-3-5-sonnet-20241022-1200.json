@@ -1,0 +1,93 @@
+[
+  {
+    "game_id": 0,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nc3 Nf6 3. a3 Bc5 4. Qe2 O-O 5. Nf3 d6 6. d3 Nc6 7. Qd1 Re8 8. Bg5 h6 9. Bh4 g5 10. Nxg5 hxg5 11. Bxg5 Qe7 12. Nd5 Nxd5 13. Bxe7 Rxe7 14. Qd2 Nf4 15. O-O-O Nxd3+ 16. Qxd3 Nd4 17. Qg3+ Kf8 18. Qh4 f6 19. Qh6+ Ke8 20. Qh5+ Kd7 21. Rg1 Rg7 22. Qh3+ 0-1",
+    "num_moves": 22
+  },
+  {
+    "game_id": 1,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c3 d6 3. Nf3 g6 4. Nbd2 Bg7 5. a4 O-O 6. h3 c6 7. e3 Nbd7 8. Be2 e5 9. Qc2 Re8 10. Nc4 Nf8 11. O-O Ne6 12. Rd1 Qc7 13. dxe5 dxe5 14. e4 Nd7 15. a5 Ndc5 16. b4 Na6 17. Bf1 Nec5 18. Nd6 Re7 19. bxc5 Nxc5 20. Be3 Be6 21. Bxc5 0-1",
+    "num_moves": 21
+  },
+  {
+    "game_id": 2,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nc3 Nf6 3. Nf3 Nc6 4. a3 d6 5. Bc4 Be7 6. d3 O-O 7. Bd2 Bg4 8. Be3 Nd4 9. Ba2 c6 10. a4 Qc7 11. Rb1 b6 12. Bxd4 exd4 13. Ne2 Rfe8 14. Nfxd4 Bxe2 15. Nxe2 d5 16. f3 dxe4 17. dxe4 Rad8 18. Nd4 c5 19. Bxf7+ Kxf7 20. Ne6 Qc6 21. Qd5 Qxd5 22. exd5 Rd6 23. O-O Rxe6 24. Rbd1 Re5 25. d6 Bd8 26. d7 0-1",
+    "num_moves": 26
+  },
+  {
+    "game_id": 3,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c4 e6 3. e3 d5 4. Bd3 dxc4 5. Bxc4 c5 6. Qa4+ Bd7 7. Qd1 cxd4 8. Qxd4 Bc6 9. Qxd8+ Kxd8 10. Bf1 Ke7 11. Nc3 Na6 12. Nf3 Rd8 13. Nd4 Be4 14. Bxa6 bxa6 15. f3 Bd5 16. Bd2 Bc4 17. Nc6+ Ke8 18. Nxd8 Kxd8 19. b3 Bd3 20. Kf2 Bc5 21. Rhc1 Bb4 22. Be1 Bxc3 23. Bxc3 Ke7 24. Bb4+ 0-1",
+    "num_moves": 24
+  },
+  {
+    "game_id": 4,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 c5 2. Nc3 Nc6 3. Bb5 g6 4. Bxc6 bxc6 5. Qe2 Bg7 6. d3 Nf6 7. f4 O-O 8. h3 d6 9. Qf2 Qb6 10. Nge2 e5 11. f5 gxf5 12. exf5 Qb4 13. g4 Qd4 14. Nxd4 exd4 15. Ne4 Nxe4 16. dxe4 Re8 17. Kd1 Rxe4 18. Rh2 Re1+ 19. Qxe1 d3 20. Qf1 dxc2+ 21. Kxc2 Bxf5+ 22. gxf5 Bxb2 23. Rg2+ Kf8 24. Bg5 f6 25. Bh6+ Ke7 26. Re1+ Kd7 27. Re7+ Kc8 28. Rg8# 0-1",
+    "num_moves": 28
+  },
+  {
+    "game_id": 5,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nc3 Nf6 3. d4 exd4 4. Qxd4 Nc6 5. Qe3 Bb4 6. Bd3 O-O 7. Nf3 Re8 8. Bd2 d6 9. h3 Bxc3 10. Bxc3 Ne5 11. Bxe5 dxe5 12. O-O-O Qe7 13. a3 b6 14. g4 Bb7 15. Rhe1 Rad8 16. Nd2 c5 17. f3 Nd7 18. Bb5 a6 19. Be2 b5 20. Nb3 b4 21. Bc4 bxa3 22. Na5 Ba8 23. Qxa3 Rb8 24. Rd3 Rb4 25. Kb1 0-1",
+    "num_moves": 25
+  },
+  {
+    "game_id": 6,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bc4 Bc5 4. Qe2 Nf6 5. Nc3 O-O 6. d3 d6 7. Be3 Bxe3 8. fxe3 Na5 9. Bd5 c6 10. Bc4 Nxc4 11. a3 Qe7 12. Nd1 Nxe3 13. Nxe3 b6 14. O-O-O Bb7 15. Rhg1 Rfe8 16. Nf5 Qf8 17. Qf2 g6 18. g4 gxf5 19. gxf5+ Kh8 20. Ng5 h6 21. Nf3 0-1",
+    "num_moves": 21
+  },
+  {
+    "game_id": 7,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. Nc3 d5 3. Nf3 e6 4. e3 c5 5. a4 cxd4 6. Bb5+ Bd7 7. exd4 Bxb5 8. axb5 Nc6 9. bxc6 bxc6 10. h3 Be7 11. Qd3 O-O 12. Ne5 c5 13. O-O cxd4 14. Ne2 Qc7 15. f4 Ne4 16. Rd1 Rfc8 17. Nxd4 Nc5 18. Qf3 Ne4 19. Nd3 Qc4 20. Nf2 Nxf2 21. Qxf2 Qb4 22. c3 Qc4 23. Kh1 Rc6 24. Nxc6 Qxc6 25. Rf1 Rb8 26. f5 exf5 27. Qe1 Rb3 28. Qxe7 Rxc3 29. Qd8+ 0-1",
+    "num_moves": 29
+  },
+  {
+    "game_id": 8,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c4 e6 3. e3 d5 4. Nc3 Be7 5. Be2 O-O 6. Qc2 dxc4 7. Bd2 b6 8. Nf3 Bb7 9. a3 c5 10. Rd1 Nc6 11. Bxc4 cxd4 12. exd4 Qc7 13. d5 exd5 14. Bxd5 Nxd5 15. Nxd5 0-1",
+    "num_moves": 15
+  },
+  {
+    "game_id": 9,
+    "model": "claude-3-5-sonnet-20241022",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"claude-3-5-sonnet-20241022\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c4 e6 3. e3 d5 4. Nc3 Be7 5. a3 O-O 6. Be2 c6 7. Bd3 Nbd7 8. Nf3 b6 9. h3 Bb7 10. O-O Re8 11. cxd5 exd5 12. b4 Ne4 13. Qc2 Ndf6 14. Ne2 Qd7 15. Ne5 Qe6 16. Bb2 Rad8 17. f3 0-1",
+    "num_moves": 17,
+    "average_num_moves": 22.8
+  }
+]

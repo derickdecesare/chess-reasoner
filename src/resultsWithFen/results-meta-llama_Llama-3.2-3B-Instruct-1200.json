@@ -1,0 +1,93 @@
+[
+  {
+    "game_id": 0,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e6 2. d4 a5 3. e4 d5 4. exd5 Nf6 5. Qa4+ Nc6 6. dxc6 Nd5 7. Qc2 0-1",
+    "num_moves": 7
+  },
+  {
+    "game_id": 1,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. a4 Nc6 3. d4 e5 4. dxe5 Nf6 5. Nf3 Nxe5 6. Bf4 Nc4 7. e4 h6 8. exd5 Nxd5 9. Bxc7 a5 10. Bxd8 0-1",
+    "num_moves": 10
+  },
+  {
+    "game_id": 2,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 Nf6 2. d4 d5 3. Nf3 Nc6 4. Bg5 e6 5. Nbd2 h6 6. Bxf6 e5 7. Bxd8 0-1",
+    "num_moves": 7
+  },
+  {
+    "game_id": 3,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 e6 2. g3 d5 3. d4 Nf6 4. Bg2 0-1",
+    "num_moves": 4
+  },
+  {
+    "game_id": 4,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 0-1",
+    "num_moves": 1
+  },
+  {
+    "game_id": 5,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 a6 2. e4 d5 3. exd5 Nf6 4. Nf3 c5 5. d3 Nc6 6. dxc6 e5 7. Nc3 Nd5 8. Nxd5 b5 9. Bf4 0-1",
+    "num_moves": 9
+  },
+  {
+    "game_id": 6,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 Nf6 2. Qe2 e5 3. a3 d5 4. exd5 Nc6 5. dxc6 b6 6. Nc3 0-1",
+    "num_moves": 6
+  },
+  {
+    "game_id": 7,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. g3 d5 3. e3 Nf6 4. Nf3 Nc6 5. cxd5 Nb8 6. Nc3 e4 7. Ng5 a5 8. Qa4+ 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 8,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 d5 2. Nf3 e6 3. c3 Nc6 4. a4 a5 5. Qc2 Nf6 6. Bf4 e5 7. Bxe5 Nxe5 8. Nxe5 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 9,
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-3B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. a4 e5 3. d4 Nf6 4. e3 Nc6 5. Nf3 0-1",
+    "num_moves": 5,
+    "average_num_moves": 6.5
+  }
+]

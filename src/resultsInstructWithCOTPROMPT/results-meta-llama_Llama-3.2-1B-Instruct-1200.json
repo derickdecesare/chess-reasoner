@@ -1,0 +1,11 @@
+[
+  {
+    "game_id": 0,
+    "model": "meta-llama/Llama-3.2-1B-Instruct",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.05\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"meta-llama/Llama-3.2-1B-Instruct\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 0-1",
+    "num_moves": 1
+  }
+]

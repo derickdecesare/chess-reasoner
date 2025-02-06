@@ -1,0 +1,93 @@
+[
+  {
+    "game_id": 0,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 c6 2. e4 e5 3. Bd3 d5 4. Nf3 Nf6 5. Nbd2 g6 6. dxe5 Nbd7 7. exf6 Bc5 8. h3 dxe4 9. Bxe4 Bb6 10. Qe2 0-1",
+    "num_moves": 10
+  },
+  {
+    "game_id": 1,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. Nf3 c5 3. d4 Nc6 4. dxc5 Nf6 5. Nbd2 e5 6. e4 Nxe4 7. b4 Bxc5 8. Nxe4 d4 9. Bb5 Be6 10. bxc5 Ke7 11. O-O Bc4 12. Bg5+ 0-1",
+    "num_moves": 12
+  },
+  {
+    "game_id": 2,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 d6 2. Nf3 c6 3. e4 e5 4. d4 Bg4 5. Be3 Qc7 6. Nc3 d5 7. h3 Nd7 8. hxg4 exd4 9. Bxd4 c5 10. Bxg7 f5 11. Bxh8 Ne5 12. Bxe5 f4 13. Qa4+ 0-1",
+    "num_moves": 13
+  },
+  {
+    "game_id": 3,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 c5 2. g3 e6 3. Bg2 Nc6 4. e4 d5 5. d3 d4 6. Ne2 e5 7. Nd2 Be6 8. O-O c4 9. dxc4 Qc7 10. b4 Bg4 11. f3 Be6 12. a3 b5 13. c5 Bc4 14. Nxc4 f5 15. Nb2 Qb6 16. Nf4 0-1",
+    "num_moves": 16
+  },
+  {
+    "game_id": 4,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 d5 2. e3 d4 3. exd4 e5 4. dxe5 Nf6 5. exf6 Be7 6. d4 Bf5 7. fxe7 g5 8. exd8=Q+ 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 5,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 c5 2. e4 Nc6 3. d4 e5 4. dxe5 Qb6 5. Be2 Nxe5 6. Na3 Nf3+ 7. Nxf3 h6 8. Rb1 Qa5 9. e5 Qxa3 10. bxa3 d6 11. Qa4+ Bd7 12. Bb5 f5 13. Bxd7+ 0-1",
+    "num_moves": 13
+  },
+  {
+    "game_id": 6,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 Nc6 2. Nf3 e5 3. Bc4 a6 4. d3 d6 5. a3 Be6 6. Bxe6 f6 7. Bd5 Qd7 8. c3 Qe6 9. Be3 g5 10. Qb3 Nge7 11. Bc4 f5 12. a4 g4 13. Nfd2 f4 14. f3 h6 15. Bg1 Rb8 16. a5 Qg6 17. Bf2 Qh5 18. Qa4 g3 19. Ba7 Qg6 20. Bg1 Qh5 21. Na3 Qh4 22. Kf1 Qh3 23. b4 Qh5 24. Bb3 Qg6 25. b5 Qg7 26. Ke2 Qf6 27. Kd1 b6 28. Bc4 Qh4 29. h3 Qg4 30. Ra2 Qg6 31. d4 exd4 32. Bxd4 d5 33. Bb3 Nxd4 34. cxd4 Bg7 35. h4 Qf6 36. Re1 Qd6 37. e5 c5 38. bxa6+ Qd7 39. Nc2 b5 40. e6 c4 41. Nxc4 b4 42. Nd6+ 0-1",
+    "num_moves": 42
+  },
+  {
+    "game_id": 7,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. d4 Nc6 3. dxe5 Bc5 4. Qd5 Nge7 5. Qxc5 Nxe5 6. Nc3 Nf3+ 7. Nxf3 d5 8. h4 c6 9. Qb4 Qa5 10. Qb3 Bg4 11. a3 O-O-O 12. Qa4 b5 13. Qd4 Bxf3 14. gxf3 Qa6 15. Be3 f6 16. Bh3+ Kc7 17. Nxb5+ 0-1",
+    "num_moves": 17
+  },
+  {
+    "game_id": 8,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 d6 2. Nf3 e5 3. d4 Nf6 4. Be3 d5 5. exd5 c6 6. Nxe5 Qb6 7. c4 cxd5 8. c5 Be7 9. Qb3 O-O 10. cxb6 Nc6 11. Bb5 Bf5 12. O-O Bg6 13. f3 Rfe8 14. Nd2 Nxd4 15. Bxd4 Bd6 16. Rfe1 Ne4 17. Rad1 Nc3 18. bxc3 f5 19. a4 Bxe5 20. Rxe5 Kh8 21. Qb2 Rxe5 22. Nf1 Re1 23. Bxg7+ 0-1",
+    "num_moves": 23
+  },
+  {
+    "game_id": 9,
+    "model": "llama-3.2-1b-instruct-finetune_png_100k",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.04\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"llama-3.2-1b-instruct-finetune_png_100k\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 Nf6 2. d4 d6 3. a3 c5 4. e3 d5 5. Nf3 Nc6 6. Nc3 dxc4 7. Bxc4 e5 8. Nxe5 Bg4 9. Nxg4 Qb6 10. Nxf6+ Kd8 11. Nfe4 Qc7 12. Bf1 Qb6 13. Bd2 Qc7 14. d5 Qc8 15. Be2 Kc7 16. d6+ Kb8 17. a4 0-1",
+    "num_moves": 17,
+    "average_num_moves": 17.1
+  }
+]

@@ -4,7 +4,7 @@ from anthropic import Anthropic
 import re
 from typing import Generator, Optional
 from dotenv import load_dotenv
-from formatting_utils import is_plausible_san
+from src.utils.formatting_utils import is_plausible_san
 
 load_dotenv()
 
@@ -33,13 +33,21 @@ def generate_move_api(
         print(f"[API] Attempt {attempt+1}/{max_attempts}, temperature={temperature}")
 
         # Call the appropriate API:
-        if "gpt-4" in model_name.lower():
-            response = openai_client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,  # OpenAI can handle higher temperatures
-                max_tokens=10,
-            )
+        if "gpt-4" in model_name.lower() or "o3" in model_name.lower() or "o1" in model_name.lower():
+            if "o3" in model_name.lower() or "o1" in model_name.lower():
+                response = openai_client.chat.completions.create(
+                    model=model_name,
+                    # reasoning_effort="medium", # automatically defaults to this..
+                    messages=[{"role": "user", "content": prompt}],
+                    # temperature=temperature,  # OpenAI can handle higher temperatures
+                )
+            else:
+                response = openai_client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=temperature,  # OpenAI can handle higher temperatures
+                    max_tokens=10,
+                )
             move_text = response.choices[0].message.content.strip()
         elif "claude" in model_name.lower():
             response = anthropic_client.messages.create(

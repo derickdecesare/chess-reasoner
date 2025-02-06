@@ -15,3 +15,5 @@ ls
 # See size of directories
 
 du -sh \*
+
+caffeinate -i -s python create_pgn_dataset.py

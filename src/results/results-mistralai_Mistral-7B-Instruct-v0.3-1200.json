@@ -5,8 +5,8 @@
     "stockfish_elo": 1200,
     "result": "0-1",
     "termination": "Model forfeit",
-    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.24\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Bc4 0-1",
-    "num_moves": 2
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 0-1",
+    "num_moves": 1
   },
   {
     "game_id": 1,
@@ -14,7 +14,7 @@
     "stockfish_elo": 1200,
     "result": "0-1",
     "termination": "Model forfeit",
-    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.24\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 d5 2. Nf3 0-1",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 d5 2. Nf3 0-1",
     "num_moves": 2
   },
   {
@@ -23,7 +23,71 @@
     "stockfish_elo": 1200,
     "result": "0-1",
     "termination": "Model forfeit",
-    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.24\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 0-1",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Bc4 0-1",
+    "num_moves": 2
+  },
+  {
+    "game_id": 3,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. d4 0-1",
+    "num_moves": 2
+  },
+  {
+    "game_id": 4,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 0-1",
     "num_moves": 1
+  },
+  {
+    "game_id": 5,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 e5 2. Nf3 0-1",
+    "num_moves": 2
+  },
+  {
+    "game_id": 6,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 d5 2. Nf3 0-1",
+    "num_moves": 2
+  },
+  {
+    "game_id": 7,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 0-1",
+    "num_moves": 1
+  },
+  {
+    "game_id": 8,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 0-1",
+    "num_moves": 1
+  },
+  {
+    "game_id": 9,
+    "model": "mistralai/Mistral-7B-Instruct-v0.3",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"mistralai/Mistral-7B-Instruct-v0.3\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 0-1",
+    "num_moves": 1,
+    "average_num_moves": 1.5
   }
 ]

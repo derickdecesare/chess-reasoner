@@ -1,0 +1,11 @@
+[
+  {
+    "game_id": 0,
+    "model": "o1-preview",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.01.31\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"o1-preview\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. e3 Nf6 3. Nc3 d5 4. d4 exd4 5. Qxd4 Nc6 6. Qd2 Bb4 7. Nf3 O-O 8. a3 Bxc3 9. Qxc3 Ne4 10. Qc2 Re8 11. Be2 Bg4 12. O-O dxc4 13. Rd1 Qe7 14. Qxc4 Rad8 15. b4 Nd6 16. Qxg4 Ne4 17. Rf1 h5 18. Qh4 g5 19. Qh3 g4 20. Qxh5 Ng5 21. Nxg5 Qxg5 22. Qxg4 Rd2 23. Bxd2 Qxg4 24. Bxg4 Ne5 25. h3 Nc4 26. Ra2 Nxe3 27. Bxe3 Rxe3 28. Kh1 Re1 29. Ra1 Re2 30. Rad1 0-1",
+    "num_moves": 30
+  }
+]
