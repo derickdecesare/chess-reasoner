@@ -3,7 +3,7 @@ import pandas as pd
 
 def main():
     # Compute the absolute path to the dataset (relative to src/)
-    dataset_rel_path = os.path.join("data", "chess", "chess_pgn_dataset_100k.parquet")
+    dataset_rel_path = os.path.join("src","data", "chess", "chess_pgn_dataset_100k.parquet")
     dataset_path = os.path.abspath(os.path.join(os.path.dirname(__file__), dataset_rel_path))
     print(f"Loading dataset from: {dataset_path}")
     

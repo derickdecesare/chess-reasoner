@@ -1,4 +1,4 @@
-from rl_training import ChessRLTrainer
+from rl_training_DEPRECATED import ChessRLTrainer
 
 def main():
     # Initialize trainer

@@ -26,6 +26,15 @@ docker run --rm -it \
  -v $(pwd)/src:/workspace/src \
  chess-reasoner bash
 
+# Development container with both src and models volumes
+
+docker run --rm -it \
+ --memory=20g \
+ --memory-swap=20g \
+ -v $(pwd)/src:/workspace/src \
+ -v $(pwd)/models:/workspace/models \
+ chess-reasoner bash
+
 # Dev workflow:
 
 1. Start dev container with file sync (command above)
@@ -45,3 +54,55 @@ $(pwd)/src : Local src directory
 # Exit container
 
 exit
+
+####################################
+
+# Notes Runpod deployment:
+
+1. Choose pod
+   -- A100 PCIe ($1.64 per hour)
+   -- 80gb vram --> perfect for 3 bill param model testing
+
+2. Deploy
+   -- Upload docker image...
+   -- mount volumes for code and models
+   -- enable global networking?
+
+# First, push your image to Docker Hub
+
+docker build -t yourusername/chess-reasoner .
+docker push yourusername/chess-reasoner
+
+# On runpod
+
+Enter docker image name
+configure volume mounts in the UI
+Start the pod
+
+3.Access
+-- runppod provides terminal access
+-- can view logs through dashboard
+
+4. Cost managment
+   -- stop pod when not in use
+
+# First need to test docker image locally before pushing it to the hub
+
+# Build the image
+
+docker build -t chess-reasoner .
+
+# Run container with volumes mounted
+
+docker run --rm -it \
+ --memory=20g \
+ --memory-swap=20g \
+ -v $(pwd)/src:/workspace/src \
+ -v $(pwd)/models:/workspace/models \
+ chess-reasoner bash
+
+# Inside container, test each script:
+
+python src/pgn_finetuning.py
+python src/cot_finetuning.py
+python src/rl_training_loop_trl.py

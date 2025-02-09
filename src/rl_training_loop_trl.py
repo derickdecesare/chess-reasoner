@@ -31,49 +31,50 @@ from datasets import Dataset
 import chess
 import chess.engine
 import chess.pgn
-from transformers import AutoTokenizer
-from trl import AutoModelForCausalLMWithValueHead, GRPOConfig, GRPOTrainer
-from src.utils.get_stockfish_path import get_stockfish_path # may have to modify this in collab.. 
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from trl import GRPOConfig, GRPOTrainer, TrainerCallback
+from utils.get_stockfish_path import get_stockfish_path # may have to modify this in collab.. 
 
 
 engine = chess.engine.SimpleEngine.popen_uci(get_stockfish_path())
 analysis_limit = chess.engine.Limit(time=0.1)
 
 
-
-# REWARD FUNCTIONS --> imported from utils/chess_rl_rewards.py
-# legal_move_reward_func:
-# Checks if the extracted move is legal (given the FEN).
-# Reward: +0.5 if legal; 0 otherwise.
-
-# good_move_reward_func:
-# Evaluates the move’s improvement using engine analysis (only for legal moves).
-# Reward: +2.0 when the move significantly improves the position outcome.
-
-# checkmate_reward_func:
-# Detects if the move results in checkmate or a decisive advantage (based on evaluation difference).
-# Reward: +3.0 or +4.0 as a bonus when the move leads to checkmate or a near-decisive advantage.
-
-
-# strict_format_reward_func:
-# Ensures the response exactly follows the strict XML format with <think> and <answer> tags.
-# Reward: +0.5 if the strict format is matched; 0 otherwise.
-
-
-# soft_format_reward_func:
-# Checks for the presence of the XML structure in a looser way.
-# Reward: +0.5 if the soft pattern is detected; 0 otherwise.
-
-
-# xmlcount_reward_func:
-# Counts the correctly placed XML tags and applies small rewards (and minor penalties for extraneous content).
-# Reward: Up to +0.5 based on the quality and accuracy of the XML formatting.
-# This set of functions will be computed for each response, and the GRPOTrainer will sum their outputs to produce the total reward signal for training.
-
-
 # -------------------------------------------------------------------
-# Helper functions (for move extraction, legality, and evaluation)
+# Helper functions (for move extraction, legality, evaluation, and xml counting)
 # -------------------------------------------------------------------
+
+
+############### TESTING DATASTRUCUTRE ########################
+def experiment_print_completions(completions, **kwargs) -> list[float]:
+    print("=== Experiment: Structure of completions ===")
+    for idx, comp in enumerate(completions):
+        print(f"Completion index {idx}: type: {type(comp)}")
+        # If comp is a list, print the type and value of its first element.
+        if isinstance(comp, list) and len(comp) > 0:
+            print(f"   First element type: {type(comp[0])} - value: {repr(comp[0])}")
+        # If comp is a dict, print its keys and value.
+        elif isinstance(comp, dict):
+            print(f"   Keys: {list(comp.keys())} - value: {comp}")
+        else:
+            print(f"   Value: {repr(comp)}")
+    
+    print("\n=== Experiment: Structure of keyword arguments (extra columns) ===")
+    for key, value in kwargs.items():
+        print(f"Key: '{key}' - type: {type(value)}")
+        if isinstance(value, list):
+            print(f"   List length: {len(value)}")
+            if len(value) > 0:
+                # Print a sample of the first few elements.
+                sample = value[:3]
+                for sample_idx, item in enumerate(sample):
+                    print(f"   Sample index {sample_idx}: type: {type(item)} - value: {repr(item)}")
+        else:
+            print(f"   Value: {repr(value)}")
+    
+    # Return a dummy reward list for testing (same length as completions)
+    return [0.0] * len(completions)
+
 
 def extract_move_from_response(response_text: str) -> Optional[str]:
     """
@@ -88,6 +89,28 @@ def extract_move_from_response(response_text: str) -> Optional[str]:
     else:
         print("No <answer> tag found; returning None.")
         return None
+
+
+def count_xml(text: str) -> float:
+    """
+    Counts the correctly placed XML tags (<think> and <answer>) in the text.
+    Awards 0.125 per correctly formatted tag, with small penalties for extraneous characters after closing tags.
+    """
+    count = 0.0
+    if text.count("<think>\n") == 1:
+        count += 0.125
+    if text.count("\n</think>\n") == 1:
+        count += 0.125
+    if text.count("\n<answer>\n") == 1:
+        count += 0.125
+        # Penalize extra characters after </answer>
+        count -= len(text.split("\n</answer>\n")[-1]) * 0.001
+    if text.count("\n</answer>") == 1:
+        count += 0.125
+        count -= (len(text.split("\n</answer>")[-1]) - 1) * 0.001
+    return count
+
+
 
 def is_move_legal(fen: str, move_text: str) -> (bool, chess.Board):
     """
@@ -142,158 +165,168 @@ def evaluate_move(board: chess.Board, move_text: str) -> Optional[float]:
 # Move Reward Functions
 # -------------------------------------------------------------------
 
-def legal_move_reward_func(completions, **kwargs) -> List[float]:
+def legal_move_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
     """
-    Checks whether the move (extracted from <answer> tags) is legal for a given FEN.
-    Expects 'fen' to be passed in kwargs.
-    Reward: +0.5 if legal; 0.0 otherwise.
+    Award +0.5 if the move extracted from the <answer> tag is legal for the corresponding FEN.
+    
+    Parameters:
+      completions: List of responses as strings (with XML-like tags).
+      fen: List of FEN strings, one per completion.
+      kwargs: Additional dataset columns.
+      
+    Returns:
+      List of rewards (0.5 for legal moves; else 0.0).
     """
-    fen = kwargs.get("fen", None)
-    if fen is None:
-        print("No FEN provided for legal_move_reward_func.")
+    rewards = []
+    for idx, response_text in enumerate(completions):
+        # Extract the move from the <answer> tag
+        move = extract_move_from_response(response_text)
+        current_fen = fen[idx]
+        
+        if move is None or len(move) > 14:
+            rewards.append(0.0)
+        else:
+            legal, _ = is_move_legal(current_fen, move)
+            rewards.append(0.5 if legal else 0.0)
+            
+    return rewards
+
+
+def good_move_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
+    """
+    Evaluate move quality for legal moves.
+    
+    Award +2.0 if the move's evaluation improvement exceeds a threshold.
+    
+    Parameters:
+      completions: List of responses as strings (with XML-like tags).
+      fen: List of FEN strings, one per response.
+      engine: Engine instance for move evaluation.
+      analysis_limit: Analysis depth/time limit.
+      kwargs: Other dataset columns.
+      
+    Returns:
+      List of rewards (2.0 for moves with evaluation improvement above threshold; else 0.0).
+    """
+    if not fen or engine is None or analysis_limit is None:
+        print("Missing requirements for good_move_reward_func (fen, engine, analysis_limit required). --> engine and analysis_limit are GLOBAL VARIABLES")
         return [0.0 for _ in completions]
     
+    good_threshold = 0  # Anything above 0 is considered an improvement.
     rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
+    for idx, response_text in enumerate(completions):
         move = extract_move_from_response(response_text)
         if move is None or len(move) > 14:
             rewards.append(0.0)
         else:
-            legal, _ = is_move_legal(fen, move)
-            rewards.append(0.5 if legal else 0.0)
-    return rewards
-
-def good_move_reward_func(completions, **kwargs) -> List[float]:
-    """
-    For legal moves (checked via is_move_legal), evaluates the move improvement.
-    Expects 'fen', 'engine', and 'analysis_limit' in kwargs.
-    Reward: +2.0 if the move's evaluation improvement exceeds a threshold.
-    """
-    fen = kwargs.get("fen", None)
-    if fen is None or engine is None or analysis_limit is None:
-        print("Missing requirements for good_move_reward_func (fen, engine, analysis_limit required).")
-        return [0.0 for _ in completions]
-    
-    # Set a threshold where we consider the move substantially improving the position.
-    good_threshold = 0  # This threshold is tunable. --> anything above 0 is good.
-    rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
-        move = extract_move_from_response(response_text)
-        if move is None or len(move) > 14: # if it's over 14 we don't waste our time.. it's not a legal move.
-            rewards.append(0.0)
-        else:
-            legal, board = is_move_legal(fen, move)
+            current_fen = fen[idx]
+            legal, board = is_move_legal(current_fen, move)
             if not legal:
                 rewards.append(0.0)
             else:
                 eval_diff = evaluate_move(board, move)
-                if eval_diff is None:
-                    rewards.append(0.0)
-                else:
-                    rewards.append(2.0 if eval_diff > good_threshold else 0.0)
+                rewards.append(2.0 if (eval_diff is not None and eval_diff > good_threshold) else 0.0)
     return rewards
 
-def checkmate_reward_func(completions, **kwargs) -> List[float]:
+def checkmate_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
     """
-    Checks whether the move leads to a checkmate or near-decisive advantage.
-    Expects 'fen', 'engine', and 'analysis_limit' in kwargs.
-    Reward: +4.0 if the move results in immediate checkmate;
-            +2.0 if the eval difference exceeds a higher threshold meaning it was a really good move.
+    Reward moves that lead to checkmate or produce a substantial evaluation improvement.
+    
+    Award +4.0 for immediate checkmate;
+    Award +2.0 if the evaluation difference exceeds a threshold.
+    
+    Parameters:
+      completions: List of responses as strings (with XML-like tags).
+      fen: List of FEN strings, one per response.
+      engine: Engine instance for move evaluation.
+      analysis_limit: Analysis depth/time limit.
+      kwargs: Additional dataset columns.
+      
+    Returns:
+      List of rewards (4.0 for checkmate; 2.0 for substantial eval improvement; else 0.0).
     """
-    fen = kwargs.get("fen", None)
-    if fen is None or engine is None or analysis_limit is None:
-        print("Missing requirements for checkmate_reward_func (fen, engine, analysis_limit required).")
+    if not fen or engine is None or analysis_limit is None:
+        print("Missing requirements for checkmate_reward_func (fen, engine, analysis_limit required). --> engine and analysis_limit are GLOBAL VARIABLES.")
         return [0.0 for _ in completions]
     
-    eval_threshold = 300  # Tunable threshold for near-decisive advantage. --> 300 centipawn eval difference is a good move.
+    eval_threshold = 300  # Tunable threshold (in centipawn difference).
     rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
+    for idx, response_text in enumerate(completions):
         move = extract_move_from_response(response_text)
         if move is None:
             rewards.append(0.0)
             continue
-        legal, board = is_move_legal(fen, move)
+        
+        current_fen = fen[idx]
+        legal, board = is_move_legal(current_fen, move)
         if not legal:
             rewards.append(0.0)
             continue
+        
         try:
             candidate_move = board.parse_san(move)
-        except Exception as e:
+        except Exception:
             rewards.append(0.0)
             continue
         
-        # Use a copy of the board for checkmate detection
         temp_board = board.copy()
         temp_board.push(candidate_move)
         if temp_board.is_checkmate():
             rewards.append(4.0)
         else:
-            # Evaluate the move using the original board state (which is unmodified)
             eval_diff = evaluate_move(board, move)
             rewards.append(2.0 if (eval_diff is not None and eval_diff > eval_threshold) else 0.0)
     return rewards
 
-# -------------------------------------------------------------------
-# Format Reward Functions
-# -------------------------------------------------------------------
-
-def strict_format_reward_func(completions, **kwargs) -> List[float]:
+def strict_format_reward_func(completions: List[str], **kwargs) -> List[float]:
     """
-    Checks if the response exactly follows the strict XML structure with <think> and <answer> tags.
-    Reward: +0.5 if the strict format is fully matched; 0 otherwise.
+    Award +0.5 if the response strictly follows the XML structure (<think> and <answer>).
+    
+    Parameters:
+      completions: List of responses as strings.
+      kwargs: Additional dataset columns.
+      
+    Returns:
+      List of rewards: +0.5 for strict XML format; else 0.0.
     """
-    # The strict pattern anchors the entire string.
     pattern = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>\n*$"
     rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
+    for response_text in completions:
         match = re.match(pattern, response_text, re.DOTALL)
         rewards.append(0.5 if match else 0.0)
     return rewards
 
-def soft_format_reward_func(completions, **kwargs) -> List[float]:
+def soft_format_reward_func(completions: List[str], **kwargs) -> List[float]:
     """
-    Checks for the presence of the XML structure (looser match) for <think> and <answer> tags.
-    Reward: +0.5 if the soft pattern is detected; 0 otherwise.
+    Award +0.5 if the response contains the XML structure (<think> and <answer>) with a looser match.
+    
+    Parameters:
+      completions: List of responses as strings.
+      kwargs: Additional dataset columns.
+      
+    Returns:
+      List of rewards: +0.5 if the soft XML pattern is detected; else 0.0.
     """
     pattern = r"<think>.*?</think>\s*<answer>.*?</answer>"
     rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
+    for response_text in completions:
         match = re.search(pattern, response_text, re.DOTALL)
         rewards.append(0.5 if match else 0.0)
     return rewards
 
-def count_xml(text: str) -> float:
+def xmlcount_reward_func(completions: List[str], **kwargs) -> List[float]:
     """
-    Counts the correctly placed XML tags (<think> and <answer>) in the text.
-    Awards 0.125 per correctly formatted tag, with small penalties for extraneous characters after closing tags.
-    """
-    count = 0.0
-    if text.count("<think>\n") == 1:
-        count += 0.125
-    if text.count("\n</think>\n") == 1:
-        count += 0.125
-    if text.count("\n<answer>\n") == 1:
-        count += 0.125
-        # Penalize extra characters after </answer>
-        count -= len(text.split("\n</answer>\n")[-1]) * 0.001
-    if text.count("\n</answer>") == 1:
-        count += 0.125
-        count -= (len(text.split("\n</answer>")[-1]) - 1) * 0.001
-    return count
-
-def xmlcount_reward_func(completions, **kwargs) -> List[float]:
-    """
-    Applies count_xml to each completion’s text.
-    Reward: Up to +0.5 based on how well the XML (<think> and <answer>) is formatted.
+    Count the correct placement of XML tags and award up to +0.5.
+    
+    Parameters:
+      completions: List of responses as strings.
+      kwargs: Additional dataset columns.
+      
+    Returns:
+      List of rewards based on the counted XML tags.
     """
     rewards = []
-    for comp in completions:
-        response_text = comp[0]["content"]
+    for response_text in completions:
         rewards.append(count_xml(response_text))
     return rewards
 
@@ -310,7 +343,12 @@ class ChessRLTrainer:
         model_name: str = "llama-3.2-1b-instruct-finetune_png_10k_cot",
         dataset_path: str = "src/data/chess/chess_rl_fen_pgn_prompt_100k.parquet",
     ):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.backends.mps.is_available():
+            self.device = "mps"
+        elif torch.cuda.is_available():
+            self.device = "cuda"
+        else:
+            self.device = "cpu"
         self.model_name = model_name
 
         # Setup logging.
@@ -341,12 +379,21 @@ class ChessRLTrainer:
 
         # Initialize tokenizer.
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        # Load the model and the reference model (used for KL regularization).
-        self.model = AutoModelForCausalLMWithValueHead.from_pretrained(model_name, device_map="auto")
-        self.ref_model = AutoModelForCausalLMWithValueHead.from_pretrained(model_name, device_map="auto")
+        # loading model example from will
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            torch_dtype=torch.bfloat16 if self.device != "mps" else "auto",
+            attn_implementation="flash_attention_2" if self.device != "mps" else None,
+            device_map=None,
+            trust_remote_code=True
+        ).to(self.device)
+
+
+        # Seemed to reduce memory usage
+        self.model.gradient_checkpointing_enable()
+
 
         self.training_args = GRPOConfig(
             output_dir=self.output_dir,
@@ -358,18 +405,18 @@ class ChessRLTrainer:
             warmup_ratio = 0.1,
             lr_scheduler_type='cosine',
             logging_steps=1,
-            bf16=True,
+            bf16=True if self.device != "mps" else False,
             per_device_train_batch_size=1,
             gradient_accumulation_steps=4,
-            num_generations=16,
-            max_prompt_length=800, # this is max length based on max length of png
-            max_completion_length=2000, # we need this to be longer for chess cot reasoning
+            num_generations=10, # reduced this for memory
+            max_prompt_length=702, # this is max length based on dataset analysis
+            max_completion_length=1200, # we need this to be longer for chess cot reasoning --> max in cot dataset was 1706 but we can reduce for testing
             num_train_epochs=1,
             save_steps=100,
             max_grad_norm=0.1,
             # report_to="wandb",
             log_on_each_node=False,
-
+            use_mps_device=True if self.device == "mps" else False,
         )
 
         self.trainer = GRPOTrainer(
