@@ -251,7 +251,7 @@ def evaluate_model(
     
     # Sanitize model name for filename by replacing / with _
     safe_model_name = model_name.replace('/', '_')
-    output_path = os.path.join(results_dir, f"results-{safe_model_name}-{stockfish_elo}.json")
+    output_path = os.path.join(results_dir, f"results-{safe_model_name}-{stockfish_elo}-{'with_fen' if include_fen else 'no_fen'}.json")
 
     results = []
     
@@ -589,13 +589,13 @@ if __name__ == "__main__":
     # simple_test_generation("models/llama-3.2-1b-instruct-finetune_png_10k_cot_1k")
 
     # fine tuned models --> mine
-    evaluate_model(
-        model_name="llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
-        local_model_path="models/llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
-        results_dir="src/resultsCOT1800Stockfish",
-        prompt_type="cot",
-        stockfish_elo=1800
-    )
+    # evaluate_model(
+    #     model_name="llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    #     local_model_path="models/llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
+    #     results_dir="src/resultsCOT1800Stockfish",
+    #     prompt_type="cot",
+    #     stockfish_elo=1800
+    # )
 
     # Base models
     # QWEN
@@ -625,7 +625,15 @@ if __name__ == "__main__":
     
 
     # SOTA models
-    # evaluate_model(model_name="gpt-4o")
+    # evaluate_model(model_name="gpt-4o", include_fen=True, stockfish_elo=1200)
+    # evaluate_model(model_name="gpt-4.5-preview", include_fen=True, stockfish_elo=1800)
+    # evaluate_model(model_name="gpt-4o", include_fen=True, stockfish_elo=1800)
+    evaluate_model(model_name="gpt-4.5-preview", include_fen=True, stockfish_elo=2400)
+    # evaluate_model(model_name="gpt-4.5-preview", include_fen=True, stockfish_elo=1800)
+
+
+    # evaluate_model(model_name="gpt-4o", include_fen=True, stockfish_elo=1800)
+
     # evaluate_model(model_name="claude-3-5-sonnet-20241022")
    
     # Reasoning models

@@ -1,0 +1,94 @@
+[
+  {
+    "game_id": 0,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 0\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"1\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 c5 2. Nc3 Nc6 3. Bc4 e6 4. d3 Nf6 5. a4 d5 6. Bb5 Be7 7. Bg5 e5 8. exd5 Nxd5 9. Qf3 Nxc3 10. Bxe7 Qxe7 11. Bxc6+ bxc6 12. Qxc6+ Bd7 13. Qxa8+ Qd8 14. Qxd8+ Kxd8 15. Nf3 Nxa4 16. Ng5 Rf8 17. b3 Nb6 18. O-O f6 19. Nf3 Kc7 20. Rxa7+ Kb8 21. Ra2 Nd5 22. Ra5 Nc3 23. Kh1 Rc8 24. Nd2 Bb5 25. Nc4 Bxc4 26. dxc4 Ne4 27. Rb5+ Kc7 28. g3 Kc6 29. Ra1 Nxf2+ 30. Kg1 Nh3+ 31. Kh1 Kd6 32. Rb6+ Kc7 33. Re6 Kd7 34. Rea6 Nf2+ 35. Kg2 Ne4 36. Rd1+ Ke7 37. Ra7+ Ke6 38. Rxg7 h5 39. Rdd7 Nd6 40. Rc7 Rxc7 41. Rxc7 Ne4 42. Rc6+ Kd7 43. Rb6 Kc7 44. Re6 Kd7 45. Rb6 Nd6 46. Ra6 Ke6 47. h4 Kf5 48. g4+ hxg4 49. Rc6 Ne4 50. h5 Kg5 51. c3 Kxh5 52. b4 cxb4 53. cxb4 Kg5 54. c5 Kf4 55. Rc8 Ke3 56. b5 Nxc5 57. b6 Kf4 58. Kg1 Nd7 59. Rc6 Nb8 60. Rc4+ e4 61. Rc8 Na6 62. b7 e3 63. Ra8 e2 64. Kf2 g3+ 65. Kxe2 Kg4 66. Rxa6 g2 67. Ra1 Kg3 68. b8=Q+ Kg4 69. Qg8+ Kf4 70. Rc1 0-1",
+    "num_moves": 70
+  },
+  {
+    "game_id": 1,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 1\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"2\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. g3 Nf6 3. Nc3 d5 4. Nxd5 Nxd5 5. Bg2 Nb6 6. Nf3 0-1",
+    "num_moves": 6
+  },
+  {
+    "game_id": 2,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 2\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"3\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 c5 2. Be2 Nc6 3. a4 g6 4. Nf3 Bg7 5. Na3 Nf6 6. d3 O-O 7. c3 0-1",
+    "num_moves": 7
+  },
+  {
+    "game_id": 3,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 3\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"4\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. d4 Nf6 3. a4 Bf5 4. e3 e6 5. Be2 c5 6. Bb5+ Nc6 7. Nf3 Nd7 8. O-O Bd6 9. Nbd2 O-O 10. Re1 a6 11. e4 axb5 12. exf5 exf5 13. dxc5 Nxc5 14. Nb3 Nxb3 15. Qxb3 bxa4 16. Rxa4 Rxa4 17. Qxa4 Qd7 18. Be3 Re8 19. h3 h6 20. Qb5 Ne5 21. Qxd5 Nxf3+ 22. gxf3 Bh2+ 23. Kxh2 Qxd5 24. Rg1 Qxf3 25. Bxh6 Qxf2+ 26. Rg2 Re2 27. Rxf2 0-1",
+    "num_moves": 27
+  },
+  {
+    "game_id": 4,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 4\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"5\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. e3 Nf6 3. Nc3 0-1",
+    "num_moves": 3
+  },
+  {
+    "game_id": 5,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 5\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"6\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. d4 Nf6 3. Nd2 Bf5 4. Qb3 b6 5. a4 e6 6. e3 Bd6 7. Ngf3 O-O 8. Be2 0-1",
+    "num_moves": 8
+  },
+  {
+    "game_id": 6,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 6\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"7\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. d4 Nf6 2. c4 e6 3. Nf3 d5 4. Qc2 c6 5. e3 Be7 6. Bd3 O-O 7. Nc3 Nbd7 8. b3 b6 9. cxd5 exd5 10. Bb2 Bb7 11. Rd1 Re8 12. a3 Bd6 13. O-O Rc8 14. h3 c5 15. dxc5 bxc5 16. Ng5 0-1",
+    "num_moves": 16
+  },
+  {
+    "game_id": 7,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 7\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"8\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. e4 c5 2. Be2 Nc6 3. Nc3 e6 4. d3 Nf6 5. Be3 d5 6. Bd2 Be7 7. Nh3 O-O 8. a4 d4 9. Nb5 a5 10. f4 e5 11. Ng5 h6 12. fxe5 Nxe5 13. Nf3 Nxf3+ 14. Bxf3 Nd7 15. Qe2 Ne5 16. b3 Bh4+ 17. Kd1 Be6 18. g3 Bg5 19. Bxg5 Qxg5 20. h4 Qxg3 21. Rf1 Qxh4 22. Kc1 Qf4+ 23. Kd1 Nxf3 24. Rxf3 Bg4 25. Rxf4 0-1",
+    "num_moves": 25
+  },
+  {
+    "game_id": 8,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 8\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"9\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c4 e5 2. e3 Nc6 3. d4 exd4 4. exd4 d5 5. Nc3 Nf6 6. Qe2+ Be7 7. Qd1 O-O 8. cxd5 Nxd5 9. Nf3 Bg4 10. h3 Bh5 11. g4 Bg6 12. Bb5 Nxc3 13. bxc3 Be4 14. O-O Qd5 15. c4 0-1",
+    "num_moves": 15
+  },
+  {
+    "game_id": 9,
+    "model": "gpt-4o",
+    "stockfish_elo": 1200,
+    "result": "0-1",
+    "termination": "Model forfeit",
+    "pgn": "[Event \"Test Game 9\"]\n[Site \"Docker Arena\"]\n[Date \"2025.02.27\"]\n[Round \"10\"]\n[White \"Stockfish-1200\"]\n[Black \"gpt-4o\"]\n[Result \"0-1\"]\n[Termination \"Model forfeit\"]\n\n1. c3 d5 2. a4 e5 3. a5 Nf6 4. g3 Bd6 5. d3 O-O 6. Nd2 c5 7. Ngf3 0-1",
+    "num_moves": 7,
+    "average_num_moves": 18.4,
+    "checkmates": 0
+  }
+]

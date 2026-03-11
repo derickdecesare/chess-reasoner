@@ -238,3 +238,45 @@ tiny_model = "Qwen/Qwen2.5-0.5B-Instruct" or Qwen/Qwen2.5-0.5B
 - Start with short training runs
 - Monitor GPU utilization
 - Track costs
+
+State of the art models:
+1200 stockfish:
+
+gpt-4o vs 1200 stockfish (with fen) : "average_num_moves": 35.4,
+"checkmates": 5
+
+gpt-4o vs 1200 stockfish (without fen) :
+"average_num_moves": 18.4,
+"checkmates": 0
+
+gpt-4.5-preview vs 1200 stockfish (with fen) :
+"average_num_moves": 30.3,
+"checkmates": 7
+
+gpt-4.5-preview vs 1200 stockfish (without fen) :
+"average_num_moves": 19,
+"checkmates": 2
+
+1800 stockfish:
+
+gpt-4o vs 1800 stockfish (with fen) :
+"average_num_moves": 22.0,
+"checkmates": 1
+wins-loss: 1-9
+
+gpt-4o vs 1800 stockfish (without fen) :
+"average_num_moves": 10.2,
+"checkmates": 1
+
+gpt-4.5-preview vs 1800 stockfish (with fen) :
+"average_num_moves": 24,
+"checkmates": 10
+win-loss: 10-1
+
+gpt-4.5-preview vs 1800 stockfish (without fen) :
+"average_num_moves": 21,
+"checkmates": 0
+
+gpt-4.5-preview vs 2400 stockfish (with fen):
+average_num_moves: 22.0
+checkmates: 1

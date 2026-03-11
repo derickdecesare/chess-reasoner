@@ -32,7 +32,7 @@ import chess.engine
 import pandas as pd
 from dotenv import load_dotenv
 from src.utils.get_stockfish_path import get_stockfish_path
-from src.api_models import openai_client, anthropic_client
+from utils.api_models import openai_client, anthropic_client
 
 # Load environment variables from .env
 load_dotenv()

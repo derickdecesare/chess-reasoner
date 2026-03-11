@@ -4,7 +4,7 @@ from anthropic import Anthropic
 import re
 from typing import Generator, Optional
 from dotenv import load_dotenv
-from src.utils.formatting_utils import is_plausible_san
+from utils.formatting_utils import is_plausible_san
 
 load_dotenv()
 
@@ -33,7 +33,7 @@ def generate_move_api(
         print(f"[API] Attempt {attempt+1}/{max_attempts}, temperature={temperature}")
 
         # Call the appropriate API:
-        if "gpt-4" in model_name.lower() or "o3" in model_name.lower() or "o1" in model_name.lower():
+        if "gpt" in model_name.lower() or "o3" in model_name.lower() or "o1" in model_name.lower():
             if "o3" in model_name.lower() or "o1" in model_name.lower():
                 response = openai_client.chat.completions.create(
                     model=model_name,

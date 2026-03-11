@@ -163,7 +163,7 @@ def generate_move(model, tokenizer, pgn, board, max_attempts=5, prompt_type="bas
         # Check if we should use API models
         if "gpt" in model.lower() or "claude" in model.lower() or "o3" in model.lower() or "o1" in model.lower():
             try:
-                from api_models import generate_move_api
+                from utils.api_models import generate_move_api
                 for move in generate_move_api(model, prompt):
                     yield move
                 return
