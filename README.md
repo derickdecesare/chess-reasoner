@@ -2,7 +2,7 @@
 
 This project aims to build a **chess reasoner** using a purely **rule-based Reinforcement Learning (RL)** approach—drawing inspiration from methods like DeepSeek-R1 in which a model is incentivized to produce detailed “chain-of-thought” reasoning. We begin with an existing 7B-parameter base language model and integrate a reward mechanism that relies solely on programmatic checks:
 
-1. **Chess Engine Evaluation** – We use Stockfish (or another engine) to assess the quality of moves.
+1. **Precomputed Move Quality Scoring** – Move quality is scored via a precomputed Stockfish eval lookup table (315k entries covering every legal move for all 10k training positions). No live Stockfish runs during training.
 2. **Chain-of-Thought Formatting** – We reward the model for placing its reasoning in `<think></think>` tags and providing a final move in `<answer></answer>`.
 3. **Group-based PPO/GRPO** – We generate multiple responses per board state, compute a reward for each, and then update the policy by comparing how each response fares relative to the group average.
 4. **Potentially other rewards to encourage cot length** -- Need more research on this to ensure it will not be exploited.
@@ -17,7 +17,7 @@ The end goal is to replicate the _RL-only_, “self-evolving” approach—where
 
 # Initial Setup for a Chess RL Project with a 7B Model
 
-Below is a concise checklist to get started on a GRPO-like RL pipeline for chess, using a 7B LLM and Stockfish.
+Below is a concise checklist to get started on a GRPO-like RL pipeline for chess, using an LLM and precomputed move evaluations.
 
 ---
 
@@ -30,9 +30,8 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
   - For the RL loop (sampling, advantage calculation, policy updates).
 - **PyTorch (GPU-enabled)**
   - Core deep-learning framework.
-- **Stockfish (or Another Chess Engine)**
-  - For evaluating the model’s proposed moves and providing numeric rewards.
-  - Install via a system package or a Python wrapper (e.g., `pip install python-chess`) which can interface with Stockfish.
+- **python-chess**
+  - For move legality checking. Move quality is scored via a precomputed eval lookup table (no live chess engine needed at training time).
 
 ---
 
@@ -81,11 +80,11 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
 
 ## 4. Reward Function
 
-- **Chess Engine Evaluation**
+- **Precomputed Move Quality Evaluation**
 
-  - Parse the move from `<answer>` and feed it into Stockfish.
-  - Stockfish returns an evaluation (e.g., +1.5 means a better position for White).
-  - Convert that numeric eval into a reward, e.g., `reward = engine_eval / scaling_factor`.
+  - Parse the move from `<answer>` and look it up in the precomputed eval table.
+  - The table returns an eval_diff in centipawns (positive = better for the side to move).
+  - Graduated reward: blunder (0.0), inaccuracy (0.5), decent (1.0), good (2.0), excellent (3.0).
 
 - **Validity & Formatting Checks**
 
@@ -104,7 +103,7 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
 
 2. **Compute Rewards**
 
-   - Evaluate each response with Stockfish + format checks.
+   - Evaluate each response with precomputed eval lookup + legality check + format checks.
 
 3. **Calculate Advantages**
 
@@ -150,7 +149,7 @@ Below is a concise checklist to get started on a GRPO-like RL pipeline for chess
   - Check that the final moves are indeed improving over time and that the chain-of-thought is not nonsense.
 
 - **Costs**
-  - Watch out for GPU usage and time spent calling Stockfish.
+  - Watch out for GPU usage costs.
 
 ### baseline measurements
 
@@ -191,7 +190,7 @@ This gives you the headroom needed for full batch training
 - Low availability
 - Better for parallel processing
 
-The extra $0.25/hr (~$6/day) for SXM gets you 2x CPU cores, which could be valuable if running many parallel Stockfish evaluations or processing large batch sizes. For more sequential workloads, the PCIe version should suffice.
+The extra $0.25/hr (~$6/day) for SXM gets you 2x CPU cores, which could be valuable for processing large batch sizes. For more sequential workloads, the PCIe version should suffice.
 
 ## minimal plan for rl loop locally
 
@@ -200,10 +199,9 @@ The extra $0.25/hr (~$6/day) for SXM gets you 2x CPU cores, which could be valua
 def test_rl_components(): # Test with tiny model (or dummy model)
 tiny_model = "Qwen/Qwen2.5-0.5B-Instruct" or Qwen/Qwen2.5-0.5B
 
-    # Test reward calculation
+    # Test reward calculation (uses precomputed eval table, no live engine)
     def test_reward_function():
-        stockfish = Stockfish()
-        # Test various positions and moves
+        # Test various positions and moves against precomputed evals
 
     # Test training loop without actual training
     def test_training_loop():
@@ -228,7 +226,7 @@ tiny_model = "Qwen/Qwen2.5-0.5B-Instruct" or Qwen/Qwen2.5-0.5B
 ### 2. Local Docker Testing
 
 - Validate container builds
-- Test dependencies and Stockfish
+- Test dependencies and python-chess
 - Verify data mounting
 - Ensure environment consistency
 

@@ -1,32 +1,20 @@
 1. Setup Phase:
 
-- Create Docker environment
+- Install system dependencies: `apt-get install -y tmux`
+- Install Python dependencies (transformers, trl, peft, accelerate, bitsandbytes, datasets, wandb, python-chess, unsloth, vllm)
+- Verify GPU/CUDA availability
+- Verify model loading and tokenizer
+- Verify precomputed eval parquet loads correctly
+- Test reward function imports
 
-  - Write Dockerfile with all dependencies
-  - Include PyTorch, transformers, TRL, python-chess
-  - Test build locally
-  - Verify all components work in container
+2. Sanity Checks:
 
-- Basic Testing in Docker
+- Run a small import test of the training script
+- Confirm dataset loads (10k prompts + 315k precomputed evals)
+- Confirm Unsloth + vLLM imports work
 
-  - Test Stockfish integration
-  - Verify model loading
-  - Test basic reward computation
-  - Ensure environment consistency
+3. Training:
 
-- RunPod Setup
-  - Create RunPod account
-  - Test SSH and development flow
-  - Upload Docker environment
-  - Verify all components work same as local
-
-2. Initial Testing:
-
-- Small-scale test with Stockfish
-- Verify reward computation
-- Test basic RL loop
-
-3. Full Implementation:
-
-- Scale up to full training
-- Monitor and adjust
+- Run rl_training_loop_unsloth.py (Unsloth + vLLM fast version)
+- Monitor via wandb
+- Checkpoints saved to /workspace/models/

@@ -59,6 +59,7 @@ lichess_db_standard_rated_2024-10.pgn.zst
 logs/
 checkpoints/
 wandb/
+unsloth_compiled_cache/
 
 # Environment variables
 .env

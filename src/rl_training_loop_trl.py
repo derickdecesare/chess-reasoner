@@ -325,12 +325,15 @@ def legal_move_reward_func(completions, fen, **kwargs) -> List[float]:
 def good_move_reward_func(completions, fen, **kwargs) -> List[float]:
     """
     Graduated reward based on precomputed eval_diff (centipawns).
-    Instead of binary (good/bad), gives proportional credit:
-      eval_diff < -50   → 0.0  (blunder — no credit)
-      -50 to 0          → 0.5  (slight inaccuracy — partial credit)
-      0 to 50           → 1.0  (decent move)
-      50 to 200         → 2.0  (good move)
-      200+              → 3.0  (excellent move)
+    Smooth gradient so even mediocre moves get some credit, creating
+    a learning signal the model can climb:
+      eval_diff >= 200  → 3.0  (excellent move)
+      eval_diff >= 50   → 2.0  (good move)
+      eval_diff >= 0    → 1.0  (decent move)
+      eval_diff >= -50  → 0.5  (slight inaccuracy)
+      eval_diff >= -100 → 0.25 (lost ~a pawn but tried)
+      eval_diff >= -200 → 0.1  (blunder but legal+in-table)
+      eval_diff < -200  → 0.0  (severe blunder)
     Falls back to 0.0 if the position is not in the lookup table.
     """
     rewards = []
@@ -357,6 +360,10 @@ def good_move_reward_func(completions, fen, **kwargs) -> List[float]:
                 reward = 1.0
             elif eval_diff >= -50:
                 reward = 0.5
+            elif eval_diff >= -100:
+                reward = 0.25
+            elif eval_diff >= -200:
+                reward = 0.1
             else:
                 reward = 0.0
             rewards.append(reward)
@@ -449,41 +456,61 @@ def checkmate_reward_func(completions, fen, **kwargs) -> List[float]:
 
 def strict_format_reward_func(completions, **kwargs) -> List[float]:
     """
-    Award +0.5 if the response strictly follows the XML structure (<think> and <answer>).
-    
-    Parameters:
-      completions: List of responses (strings or chat message lists).
-      kwargs: Additional dataset columns.
-      
-    Returns:
-      List of rewards: +0.5 for strict XML format; else 0.0.
+    Award +0.25 if the response strictly follows the XML structure (<think> and <answer>).
+    Kept small so format rewards don't dominate move-quality signals.
     """
     pattern = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>\n*$"
     rewards = []
     for completion in completions:
         response_text = get_completion_text(completion)
         match = re.match(pattern, response_text, re.DOTALL)
-        rewards.append(0.5 if match else 0.0)
+        rewards.append(0.25 if match else 0.0)
     return rewards
 
 def soft_format_reward_func(completions, **kwargs) -> List[float]:
     """
-    Award +0.5 if the response contains the XML structure (<think> and <answer>) with a looser match.
-    
-    Parameters:
-      completions: List of responses (strings or chat message lists).
-      kwargs: Additional dataset columns.
-      
-    Returns:
-      List of rewards: +0.5 if the soft XML pattern is detected; else 0.0.
+    Award +0.25 if the response contains the XML structure (<think> and <answer>) with a looser match.
+    Kept small so format rewards don't dominate move-quality signals.
     """
     pattern = r"<think>.*?</think>\s*<answer>.*?</answer>"
     rewards = []
     for completion in completions:
         response_text = get_completion_text(completion)
         match = re.search(pattern, response_text, re.DOTALL)
-        rewards.append(0.5 if match else 0.0)
+        rewards.append(0.25 if match else 0.0)
     return rewards
+
+def thinking_length_reward_func(completions, **kwargs) -> List[float]:
+    """
+    Reward that scales with the length of the <think> section,
+    encouraging the model to reason deeply before answering.
+    Sized to compete with format rewards so the model can't coast on short templates.
+      0-100 chars:     0.0
+      100-300 chars:   0.2
+      300-800 chars:   0.4
+      800-1500 chars:  0.6
+      1500+ chars:     0.8
+    """
+    rewards = []
+    for completion in completions:
+        response_text = get_completion_text(completion)
+        think_match = re.search(r'<think>(.*?)</think>', response_text, re.DOTALL)
+        if think_match:
+            length = len(think_match.group(1).strip())
+            if length >= 1500:
+                rewards.append(0.8)
+            elif length >= 800:
+                rewards.append(0.6)
+            elif length >= 300:
+                rewards.append(0.4)
+            elif length >= 100:
+                rewards.append(0.2)
+            else:
+                rewards.append(0.0)
+        else:
+            rewards.append(0.0)
+    return rewards
+
 
 def xmlcount_reward_func(completions, **kwargs) -> List[float]:
     """
@@ -499,7 +526,7 @@ def xmlcount_reward_func(completions, **kwargs) -> List[float]:
     rewards = []
     for completion in completions:
         response_text = get_completion_text(completion)
-        rewards.append(count_xml(response_text))
+        rewards.append(max(0.0, count_xml(response_text)))
     return rewards
 
 

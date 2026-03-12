@@ -8,8 +8,7 @@ RUN pip3 install --no-cache-dir \
     transformers<=4.46.0 \
     vllm==0.6.3 \
     wandb==0.18.7 \
-    python-chess \  # Added for chess
-    stockfish      # Added for chess engine
+    python-chess
 
 # Ray and Flash Attention
 RUN pip3 install --no-cache-dir flash-attn==2.7.0.post2

@@ -21,22 +21,32 @@ Requirements (in addition to the base requirements):
   pip install unsloth vllm
   
 Usage:
-  HF_HOME=/workspace/hf_cache python3 src/rl_training_loop_unsloth.py
+  tmux new -s training
+  cd /root/chess-reasoner && HF_HOME=/workspace/hf_cache python3 src/rl_training_loop_unsloth.py
+  # Detach: Ctrl+B, D
+  # Reattach: tmux attach -t training
+  # Kill: tmux kill-session -t training
+  # Check: tmux ls
 """
 
 import os
 import logging
 from typing import List
 from datetime import datetime
+
+# ---------------------------------------------------------------
+# Unsloth MUST be imported before trl, transformers, peft so it can
+# monkey-patch them for optimized kernels and memory management.
+# PatchFastRL patches TRL's vLLM weight sync path to handle Unsloth's
+# quantized LoRA tensors correctly — without it, merge_adapter() fails
+# with a tensor size mismatch during the first generation step.
+# ---------------------------------------------------------------
+from unsloth import FastLanguageModel, PatchFastRL
+PatchFastRL("GRPO", FastLanguageModel)
+
 import pandas as pd
 from datasets import Dataset
 from trl import GRPOConfig, GRPOTrainer
-
-# ---------------------------------------------------------------
-# Unsloth replaces: AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, LoraConfig
-# All of those are handled internally by FastLanguageModel.
-# ---------------------------------------------------------------
-from unsloth import FastLanguageModel
 
 # ---------------------------------------------------------------
 # Import ALL reward functions from the original training script.
@@ -50,6 +60,8 @@ from rl_training_loop_trl import (
     checkmate_reward_func,
     strict_format_reward_func,
     soft_format_reward_func,
+    xmlcount_reward_func,
+    thinking_length_reward_func,
 )
 
 os.environ["HF_HOME"] = "/workspace/hf_cache"
@@ -128,7 +140,7 @@ class ChessRLTrainerUnsloth:
         # -----------------------------------------------------------
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model_name=model_name,
-            max_seq_length=1280,          # prompt (~230 tokens) + completion (1024 tokens)
+            max_seq_length=2560,          # prompt (~230 tokens) + completion (2048 tokens)
             load_in_4bit=True,            # ★ replaces BitsAndBytesConfig — same NF4 quantization under the hood
             fast_inference=True,          # ★ NEW: enable vLLM generation backend on the same GPU
             max_lora_rank=64,             # ★ NEW: pre-allocate LoRA rank space in vLLM (must match r= below)
@@ -146,7 +158,7 @@ class ChessRLTrainerUnsloth:
                 "q_proj", "k_proj", "v_proj", "o_proj",
                 "gate_proj", "up_proj", "down_proj",
             ],
-            lora_dropout=0.05,
+            lora_dropout=0.0,
             use_gradient_checkpointing="unsloth",  # ★ Unsloth's smarter gradient checkpointing (offloads to system RAM)
         )
 
@@ -156,7 +168,7 @@ class ChessRLTrainerUnsloth:
         self.training_args = GRPOConfig(
             output_dir=self.output_dir,
             run_name=self.run_name,
-            learning_rate=5e-6,
+            learning_rate=1e-5,
             adam_beta1=0.9,
             adam_beta2=0.99,
             weight_decay=0.1,
@@ -166,11 +178,11 @@ class ChessRLTrainerUnsloth:
             bf16=True,
             per_device_train_batch_size=1,
             gradient_accumulation_steps=4,
-            num_generations=4,
-            max_completion_length=1024,
+            num_generations=12,
+            max_completion_length=2048,
             num_train_epochs=1,
             save_steps=50,
-            max_grad_norm=0.1,
+            max_grad_norm=1.0,
             report_to="wandb",
             log_on_each_node=False,
             # ★ No gradient_checkpointing=True here — Unsloth handles it via
@@ -195,6 +207,8 @@ class ChessRLTrainerUnsloth:
                 checkmate_reward_func,
                 strict_format_reward_func,
                 soft_format_reward_func,
+                xmlcount_reward_func,
+                thinking_length_reward_func,
             ],
             args=self.training_args,
             train_dataset=self.dataset,
@@ -209,7 +223,7 @@ class ChessRLTrainerUnsloth:
         """
         try:
             self.logger.info("Starting training with Unsloth + vLLM...")
-            self.trainer.train(resume_from_checkpoint=True)
+            self.trainer.train(resume_from_checkpoint="/workspace/models/qwen-14B-GRPO-unsloth/checkpoint-600")
             self.logger.info("Training complete. Saving final model...")
 
             final_path = f"{self.output_dir}/final"
@@ -230,7 +244,7 @@ def main():
     trainer = ChessRLTrainerUnsloth(
         model_name="Qwen/Qwen2.5-14B-Instruct",
         dataset_path="src/data/chess/chess_rl_fen_pgn_prompt_10k.parquet",
-        max_rows=700,  # same as TRL-only for comparison; increase for longer runs
+        max_rows=None,  # full 10k — ~2500 steps, resume from checkpoint-600 with rebalanced rewards
     )
     trainer.train()
 
