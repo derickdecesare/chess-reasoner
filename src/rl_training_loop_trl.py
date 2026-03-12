@@ -31,8 +31,16 @@ import pandas as pd
 from datasets import Dataset
 import chess
 import chess.pgn
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl import GRPOConfig, GRPOTrainer, TrainerCallback
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+from peft import LoraConfig
+from trl import GRPOConfig, GRPOTrainer
+
+# Point HuggingFace cache to /workspace so model weights live on the persistent volume
+# (the root disk is only 20GB and will fill up if we download a 14B model there)
+os.environ["HF_HOME"] = "/workspace/hf_cache"
+
+# Weights & Biases — all runs will appear under this project in the wandb dashboard
+os.environ["WANDB_PROJECT"] = "chess-reasoner"
 
 
 # -------------------------------------------------------------------
@@ -91,18 +99,43 @@ def experiment_print_completions(completions, **kwargs) -> list[float]:
     return [0.0] * len(completions)
 
 
-def extract_move_from_response(response_text: str) -> Optional[str]:
+def get_completion_text(completion) -> str:
+    """
+    Normalize a completion to a plain string.
+    TRL 0.29+ passes completions as chat message lists when using chat templates,
+    e.g. [{"role": "assistant", "content": "..."}] instead of a plain string.
+    This helper handles both formats so reward functions always get a string.
+    """
+    if isinstance(completion, str):
+        return completion
+    if isinstance(completion, list):
+        # Chat message format — extract the assistant's content
+        for msg in completion:
+            if isinstance(msg, dict) and msg.get("role") == "assistant":
+                return msg.get("content", "")
+        # Fallback: join all content fields
+        return " ".join(msg.get("content", "") for msg in completion if isinstance(msg, dict))
+    return str(completion)
+
+
+def extract_move_from_response(response_text: str, silent: bool = False) -> Optional[str]:
     """
     Extracts the move from <answer>...</answer> tags in the response.
-    Removes extraneous characters (e.g. '+' or '#') often attached to check/mate.
+
+    We intentionally preserve '+' (check) and '#' (checkmate) suffixes because:
+      - The precomputed eval table was built with board.san(), which includes them (e.g. 'Nf3+', 'Qh7#').
+      - Stripping them would cause lookup misses for any checking or mating move.
+      - python-chess parse_san() accepts SAN both with and without these suffixes,
+        so keeping them doesn't break legality checking either.
     """
     move_match = re.search(r'<answer>(.*?)</answer>', response_text, re.DOTALL)
     if move_match:
         move_text = move_match.group(1).strip()
-        move_text = move_text.replace("+", "").replace("#", "")
+        # Do NOT strip '+' or '#' — the eval table keys include them.
         return move_text
     else:
-        print("No <answer> tag found; returning None.")
+        if not silent:
+            print("No <answer> tag found; returning None.")
         return None
 
 
@@ -127,7 +160,7 @@ def count_xml(text: str) -> float:
 
 
 
-def is_move_legal(fen: str, move_text: str) -> (bool, chess.Board):
+def is_move_legal(fen: str, move_text: str, silent: bool = False) -> (bool, chess.Board):
     """
     Checks whether move_text is legal from the board represented by the given FEN.
     Returns a tuple: (is_legal, board_state).
@@ -136,13 +169,16 @@ def is_move_legal(fen: str, move_text: str) -> (bool, chess.Board):
     try:
         candidate_move = board.parse_san(move_text)
     except Exception as e:
-        print(f"Failed to parse move '{move_text}': {e}")
+        if not silent:
+            print(f"Failed to parse move '{move_text}': {e}")
         return (False, board)
     if candidate_move in board.legal_moves:
-        print(f"✓ Valid & legal move: {move_text}")
+        if not silent:
+            print(f"✓ Valid & legal move: {move_text}")
         return (True, board)
     else:
-        print(f"✗ Move parsed but not legal: {move_text}")
+        if not silent:
+            print(f"✗ Move parsed but not legal: {move_text}")
         return (False, board)
 
 # -------------------------------------------------------------------
@@ -184,71 +220,164 @@ def is_move_legal(fen: str, move_text: str) -> (bool, chess.Board):
 def lookup_eval_diff(fen: str, move_san: str) -> Optional[float]:
     """
     Returns the precomputed eval_diff (centipawns) for (fen, move_san), or None if not found.
+
+    Before lookup, we canonicalize the move SAN through python-chess:
+      board.san(board.parse_san(move)) -> canonical form
+
+    This fixes cases where the model outputs an over-specified move like 'Rac1' when
+    only one rook can reach c1, so the canonical form (and eval table key) is 'Rc1'.
+    Without this, disambiguated-but-unambiguous moves would always miss the lookup.
     """
-    return EVAL_TABLE.get((fen, move_san), None)
+    try:
+        board = chess.Board(fen)
+        # parse_san accepts any valid SAN variant; san() returns the canonical minimal form
+        canonical = board.san(board.parse_san(move_san))
+    except Exception:
+        # If parsing fails (illegal move etc.), fall back to the raw string
+        canonical = move_san
+
+    return EVAL_TABLE.get((fen, canonical), None)
 
 # -------------------------------------------------------------------
 # Move Reward Functions (lookup-based — no live Stockfish required)
 # -------------------------------------------------------------------
 
-def legal_move_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
+def move_analysis_log_func(completions, fen, **kwargs) -> List[float]:
+    """
+    Diagnostic-only reward function (always returns 0.0 — no reward impact).
+    Prints one clear summary line per completion showing:
+      move, legality, eval_diff, graduated tier, checkmate status.
+    Added as the first reward_func so its output appears before the actual reward logging.
+    """
+    print(f"\n{'='*70}")
+    print(f"  MOVE ANALYSIS — {len(completions)} completions")
+    print(f"{'='*70}")
+    rewards = []
+    for idx, completion in enumerate(completions):
+        response_text = get_completion_text(completion)
+        move = extract_move_from_response(response_text, silent=True)
+        current_fen = fen[idx]
+
+        if move is None or len(move) > 14:
+            print(f"  [gen {idx}] fen=...{current_fen[-20:]}  move=NONE (no <answer> tag or too long)")
+            rewards.append(0.0)
+            continue
+
+        legal, board = is_move_legal(current_fen, move, silent=True)
+
+        if not legal:
+            print(f"  [gen {idx}] fen=...{current_fen[-20:]}  move={move}  legal=NO")
+            rewards.append(0.0)
+            continue
+
+        eval_diff = lookup_eval_diff(current_fen, move)
+        eval_str = f"{eval_diff:+.0f}cp" if eval_diff is not None else "N/A (lookup miss)"
+
+        # Determine graduated tier label
+        if eval_diff is not None:
+            if eval_diff >= 200:
+                tier = "EXCELLENT (+3.0)"
+            elif eval_diff >= 50:
+                tier = "GOOD (+2.0)"
+            elif eval_diff >= 0:
+                tier = "DECENT (+1.0)"
+            elif eval_diff >= -50:
+                tier = "INACCURACY (+0.5)"
+            else:
+                tier = "BLUNDER (0.0)"
+        else:
+            tier = "NO EVAL"
+
+        # Check for checkmate
+        is_mate = False
+        try:
+            candidate = board.parse_san(move)
+            temp = board.copy()
+            temp.push(candidate)
+            is_mate = temp.is_checkmate()
+        except Exception:
+            pass
+        mate_str = "  *** CHECKMATE! ***" if is_mate else ""
+
+        print(f"  [gen {idx}] move={move}  legal=YES  eval_diff={eval_str}  tier={tier}{mate_str}")
+        rewards.append(0.0)
+    return rewards
+
+
+def legal_move_reward_func(completions, fen, **kwargs) -> List[float]:
     """
     Award +0.5 if the move extracted from the <answer> tag is legal for the corresponding FEN.
     Uses python-chess for legality checking — no Stockfish needed.
     """
     rewards = []
-    for idx, response_text in enumerate(completions):
-        move = extract_move_from_response(response_text)
+    for idx, completion in enumerate(completions):
+        response_text = get_completion_text(completion)
+        move = extract_move_from_response(response_text, silent=True)
         current_fen = fen[idx]
         if move is None or len(move) > 14:
             rewards.append(0.0)
         else:
-            legal, _ = is_move_legal(current_fen, move)
+            legal, _ = is_move_legal(current_fen, move, silent=True)
             rewards.append(0.5 if legal else 0.0)
     return rewards
 
 
-def good_move_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
+def good_move_reward_func(completions, fen, **kwargs) -> List[float]:
     """
-    Award +2.0 if the move's precomputed eval_diff is positive (an improvement for the side to move).
+    Graduated reward based on precomputed eval_diff (centipawns).
+    Instead of binary (good/bad), gives proportional credit:
+      eval_diff < -50   → 0.0  (blunder — no credit)
+      -50 to 0          → 0.5  (slight inaccuracy — partial credit)
+      0 to 50           → 1.0  (decent move)
+      50 to 200         → 2.0  (good move)
+      200+              → 3.0  (excellent move)
     Falls back to 0.0 if the position is not in the lookup table.
     """
     rewards = []
-    for idx, response_text in enumerate(completions):
-        move = extract_move_from_response(response_text)
+    for idx, completion in enumerate(completions):
+        response_text = get_completion_text(completion)
+        move = extract_move_from_response(response_text, silent=True)
         if move is None or len(move) > 14:
             rewards.append(0.0)
             continue
         current_fen = fen[idx]
-        legal, _ = is_move_legal(current_fen, move)
+        legal, _ = is_move_legal(current_fen, move, silent=True)
         if not legal:
             rewards.append(0.0)
             continue
         eval_diff = lookup_eval_diff(current_fen, move)
         if eval_diff is None:
-            print(f"  [lookup miss] FEN not in precomputed table, skipping reward.")
             rewards.append(0.0)
         else:
-            rewards.append(2.0 if eval_diff > 0 else 0.0)
+            if eval_diff >= 200:
+                reward = 3.0
+            elif eval_diff >= 50:
+                reward = 2.0
+            elif eval_diff >= 0:
+                reward = 1.0
+            elif eval_diff >= -50:
+                reward = 0.5
+            else:
+                reward = 0.0
+            rewards.append(reward)
     return rewards
 
 
-def checkmate_reward_func(completions: List[str], fen: List[str], **kwargs) -> List[float]:
+def checkmate_reward_func(completions, fen, **kwargs) -> List[float]:
     """
-    Award +4.0 for an immediate checkmate move.
-    Award +2.0 if the precomputed eval_diff exceeds 300 centipawns.
-    Falls back to 0.0 if the position is not in the lookup table.
+    Award +4.0 if the move delivers immediate checkmate.
+    0.0 otherwise. Eval-based quality scoring is handled by good_move_reward_func.
     Checkmate detection uses python-chess — no Stockfish needed.
     """
-    eval_threshold = 300
     rewards = []
-    for idx, response_text in enumerate(completions):
-        move = extract_move_from_response(response_text)
+    for idx, completion in enumerate(completions):
+        response_text = get_completion_text(completion)
+        move = extract_move_from_response(response_text, silent=True)
         if move is None:
             rewards.append(0.0)
             continue
         current_fen = fen[idx]
-        legal, board = is_move_legal(current_fen, move)
+        legal, board = is_move_legal(current_fen, move, silent=True)
         if not legal:
             rewards.append(0.0)
             continue
@@ -262,12 +391,7 @@ def checkmate_reward_func(completions: List[str], fen: List[str], **kwargs) -> L
         if temp_board.is_checkmate():
             rewards.append(4.0)
         else:
-            eval_diff = lookup_eval_diff(current_fen, move)
-            if eval_diff is None:
-                print(f"  [lookup miss] FEN not in precomputed table, skipping reward.")
-                rewards.append(0.0)
-            else:
-                rewards.append(2.0 if eval_diff > eval_threshold else 0.0)
+            rewards.append(0.0)
     return rewards
 
 
@@ -323,12 +447,12 @@ def checkmate_reward_func(completions: List[str], fen: List[str], **kwargs) -> L
 #             rewards.append(2.0 if (eval_diff is not None and eval_diff > eval_threshold) else 0.0)
 #     return rewards
 
-def strict_format_reward_func(completions: List[str], **kwargs) -> List[float]:
+def strict_format_reward_func(completions, **kwargs) -> List[float]:
     """
     Award +0.5 if the response strictly follows the XML structure (<think> and <answer>).
     
     Parameters:
-      completions: List of responses as strings.
+      completions: List of responses (strings or chat message lists).
       kwargs: Additional dataset columns.
       
     Returns:
@@ -336,17 +460,18 @@ def strict_format_reward_func(completions: List[str], **kwargs) -> List[float]:
     """
     pattern = r"^<think>\n.*?\n</think>\n<answer>\n.*?\n</answer>\n*$"
     rewards = []
-    for response_text in completions:
+    for completion in completions:
+        response_text = get_completion_text(completion)
         match = re.match(pattern, response_text, re.DOTALL)
         rewards.append(0.5 if match else 0.0)
     return rewards
 
-def soft_format_reward_func(completions: List[str], **kwargs) -> List[float]:
+def soft_format_reward_func(completions, **kwargs) -> List[float]:
     """
     Award +0.5 if the response contains the XML structure (<think> and <answer>) with a looser match.
     
     Parameters:
-      completions: List of responses as strings.
+      completions: List of responses (strings or chat message lists).
       kwargs: Additional dataset columns.
       
     Returns:
@@ -354,24 +479,26 @@ def soft_format_reward_func(completions: List[str], **kwargs) -> List[float]:
     """
     pattern = r"<think>.*?</think>\s*<answer>.*?</answer>"
     rewards = []
-    for response_text in completions:
+    for completion in completions:
+        response_text = get_completion_text(completion)
         match = re.search(pattern, response_text, re.DOTALL)
         rewards.append(0.5 if match else 0.0)
     return rewards
 
-def xmlcount_reward_func(completions: List[str], **kwargs) -> List[float]:
+def xmlcount_reward_func(completions, **kwargs) -> List[float]:
     """
     Count the correct placement of XML tags and award up to +0.5.
     
     Parameters:
-      completions: List of responses as strings.
+      completions: List of responses (strings or chat message lists).
       kwargs: Additional dataset columns.
       
     Returns:
       List of rewards based on the counted XML tags.
     """
     rewards = []
-    for response_text in completions:
+    for completion in completions:
+        response_text = get_completion_text(completion)
         rewards.append(count_xml(response_text))
     return rewards
 
@@ -385,15 +512,10 @@ def xmlcount_reward_func(completions: List[str], **kwargs) -> List[float]:
 class ChessRLTrainer:
     def __init__(
         self,
-        model_name: str = "llama-3.2-1b-instruct-finetune_png_10k_cot",
-        dataset_path: str = "src/data/chess/chess_rl_fen_pgn_prompt_100k.parquet",
+        model_name: str = "Qwen/Qwen2.5-14B-Instruct",
+        dataset_path: str = "src/data/chess/chess_rl_fen_pgn_prompt_10k.parquet",  # 10k dataset — matches precomputed evals (99.9% coverage)
+        max_rows: int = None,  # limit dataset size for faster runs (e.g. 1000 for ~21 hour first run)
     ):
-        if torch.backends.mps.is_available():
-            self.device = "mps"
-        elif torch.cuda.is_available():
-            self.device = "cuda"
-        else:
-            self.device = "cpu"
         self.model_name = model_name
 
         # Setup logging.
@@ -401,16 +523,19 @@ class ChessRLTrainer:
         logging.basicConfig(level=logging.INFO)
 
         # Setup output directory.
-        if "llama" in model_name:
-            self.output_dir = "models/llama-1B-GRPO"
-            self.run_name = f"llama-1B-GRPO-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        else:
-            self.output_dir = "models/qwen-1.5B-GRPO"
-            self.run_name = f"qwen-1.5B-GRPO-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-       
+        # Checkpoints saved to /workspace so they persist across pod restarts
+        # (the root container disk is ephemeral and only 20GB).
+        self.output_dir = "/workspace/models/qwen-14B-GRPO"
+        self.run_name = f"qwen-14B-GRPO-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
         # Load the chess position dataset.
         # It will have "pgn", "fen", "prompt", "full_moves"
+        # max_rows limits the dataset size for faster training runs.
+        # 1000 rows at ~78s/step ≈ 21 hours on a single A100.
         self.dataset = pd.read_parquet(dataset_path)
+        if max_rows is not None and len(self.dataset) > max_rows:
+            self.dataset = self.dataset.sample(n=max_rows, random_state=42).reset_index(drop=True)
+            self.logger.info(f"Sampled {max_rows} positions from dataset (out of {len(self.dataset) + max_rows - max_rows}).")
         self.logger.info(f"Loaded {len(self.dataset)} positions from dataset.")
 
         # Convert Pandas DataFrame to HuggingFace Dataset if necessary.
@@ -421,62 +546,121 @@ class ChessRLTrainer:
         except Exception as e:
             self.logger.error("Failed to convert dataset to HuggingFace Dataset.", exc_info=e)
 
+        # Wrap prompts as chat messages so TRL applies the model's chat template.
+        # Without this, the model would see raw text instead of the ChatML format
+        # (<|im_start|>user\n...<|im_end|>\n<|im_start|>assistant\n) it was pre-trained with.
+        # This is critical — in our sanity check, the model only produced <think>/<answer>
+        # format correctly when the chat template was applied.
+        def wrap_prompt_as_chat(example):
+            example["prompt"] = [{"role": "user", "content": example["prompt"]}]
+            return example
+        self.dataset = self.dataset.map(wrap_prompt_as_chat)
+        self.logger.info("Wrapped prompts as chat messages for chat template formatting.")
 
         # Initialize tokenizer.
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.tokenizer.pad_token = self.tokenizer.eos_token
 
-        # loading model example from will
+        # ---------------------------------------------------------------
+        # QLoRA Setup: 4-bit Quantization + LoRA Adapters
+        # ---------------------------------------------------------------
+        # WHY QLORA?
+        # A 14B model in bf16 needs ~28GB just for weights alone.
+        # Full fine-tuning would need 3-4x that (optimizer states + gradients) = 80-110GB.
+        # That won't fit on a single 80GB A100.
+        #
+        # QLoRA solves this by:
+        #   1. Quantizing the base model to 4-bit (~7GB for weights)
+        #   2. Freezing those 4-bit weights (no gradients computed for them)
+        #   3. Attaching small trainable LoRA adapter matrices (~1-2% of total params)
+        #   4. Only the LoRA adapters get updated — massively reduces memory
+        #
+        # This brings total VRAM to roughly ~20-30GB, leaving headroom for
+        # KV cache during generation and activations during training.
+        # ---------------------------------------------------------------
+
+        # BitsAndBytesConfig controls how the base model gets quantized
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,              # quantize base model weights to 4-bit (instead of 16-bit)
+            bnb_4bit_quant_type="nf4",      # NormalFloat4 — best quantization type for normally-distributed weights
+            bnb_4bit_compute_dtype=torch.bfloat16,  # do math in bf16 (dequantize on-the-fly during forward/backward pass)
+            bnb_4bit_use_double_quant=True,  # also quantize the quantization constants — saves ~0.4 bits/param extra
+        )
+
+        # Load the base model with 4-bit quantization applied
+        # NOTE: with quantization, we do NOT call .to(device) — device_map="auto" handles placement
+        # NOTE: flash_attention_2 is supported on A100 and reduces memory during attention computation
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.bfloat16 if self.device != "mps" else "auto",
-            attn_implementation="flash_attention_2" if self.device != "mps" else None,
-            device_map=None,
-            trust_remote_code=True
-        ).to(self.device)
+            quantization_config=bnb_config,  # apply 4-bit quantization from above
+            attn_implementation="flash_attention_2",  # use flash attention for memory efficiency on A100
+            device_map="auto",              # automatically places model layers on available GPU(s)
+            trust_remote_code=True,         # needed for some HuggingFace models (like Qwen) that have custom code
+        )
 
+        # LoRA (Low-Rank Adaptation) config
+        # Instead of updating all 14B parameters, LoRA injects small trainable
+        # rank-decomposition matrices into each target layer.
+        # Only these adapters (~1-2% of total params) get gradient updates.
+        # The base model weights stay frozen in 4-bit — this is what makes QLoRA memory-efficient.
+        self.peft_config = LoraConfig(
+            r=64,                           # rank of the low-rank matrices (higher = more capacity but more memory)
+            lora_alpha=16,                  # scaling factor — effective learning rate scales as alpha/r
+            target_modules=[                # which linear layers to inject LoRA into
+                "q_proj", "k_proj", "v_proj", "o_proj",   # attention projection layers
+                "gate_proj", "up_proj", "down_proj",       # MLP projection layers (Qwen2 / LLaMA architecture)
+            ],
+            lora_dropout=0.05,              # dropout on LoRA layers for regularization
+            task_type="CAUSAL_LM",          # tells PEFT this is a causal language model (autoregressive)
+        )
 
-        # Seemed to reduce memory usage
-        self.model.gradient_checkpointing_enable()
-
-
+        # GRPOConfig — training hyperparameters for Group Relative Policy Optimization
+        # Adjusted for 14B QLoRA on a single A100 80GB:
+        #   - num_generations reduced from 10 to 6 (each generation needs a full forward pass)
+        #   - max_completion_length reduced from 1200 to 1024 (saves KV cache memory)
+        #   - gradient_checkpointing=True (trades compute for memory — recomputes activations during backward)
+        #   - bf16=True (A100 has native bf16 support, faster and more memory efficient than fp32)
         self.training_args = GRPOConfig(
             output_dir=self.output_dir,
             run_name=self.run_name,
             learning_rate=5e-6,
-            adam_beta1 = 0.9,
-            adam_beta2 = 0.99,
-            weight_decay = 0.1,
-            warmup_ratio = 0.1,
+            adam_beta1=0.9,
+            adam_beta2=0.99,
+            weight_decay=0.1,
+            warmup_steps=100,                   # number of warmup steps (warmup_ratio deprecated in TRL 0.29)
             lr_scheduler_type='cosine',
             logging_steps=1,
-            bf16=True if self.device != "mps" else False,
-            per_device_train_batch_size=1,
-            gradient_accumulation_steps=4,
-            num_generations=10, # reduced this for memory
-            max_prompt_length=702, # this is max length based on dataset analysis
-            max_completion_length=1200, # we need this to be longer for chess cot reasoning --> max in cot dataset was 1706 but we can reduce for testing
+            bf16=True,                          # use bfloat16 mixed precision (native on A100)
+            per_device_train_batch_size=1,      # 1 prompt per step (memory constrained with 14B)
+            gradient_accumulation_steps=4,      # effective batch size = 1 * 4 = 4 prompts
+            num_generations=4,                  # completions per prompt for GRPO (must be divisible by generation_batch_size which defaults to 4)
+            max_completion_length=1024,         # max tokens for chess CoT reasoning (prompts are ~150-230 tokens)
             num_train_epochs=1,
-            save_steps=100,
+            save_steps=50,                      # save a checkpoint every 50 steps (on /workspace so it persists)
             max_grad_norm=0.1,
-            # report_to="wandb",
+            gradient_checkpointing=True,        # recompute activations during backward pass to save memory
+            report_to="wandb",                 # log metrics to Weights & Biases dashboard
             log_on_each_node=False,
-            use_mps_device=True if self.device == "mps" else False,
         )
 
+        # Initialize the GRPOTrainer
+        # peft_config is passed here — the trainer will automatically wrap the quantized model
+        # with LoRA adapters internally (calls get_peft_model under the hood)
         self.trainer = GRPOTrainer(
-                model=self.model,
-                processing_class=self.tokenizer,
-                reward_funcs=[
-                        legal_move_reward_func,
-                        good_move_reward_func,
-                        checkmate_reward_func,
-                        strict_format_reward_func,
-                        soft_format_reward_func,
-                        xmlcount_reward_func],
-                args=self.training_args,
-                train_dataset=self.dataset,
-            )
+            model=self.model,
+            processing_class=self.tokenizer,
+            reward_funcs=[
+                move_analysis_log_func,     # 0.0 always — diagnostic logging only (prints per-completion summary)
+                legal_move_reward_func,     # +0.5 for a legal move
+                good_move_reward_func,      # graduated: 0.0 (blunder) / 0.5 (inaccuracy) / 1.0 (decent) / 2.0 (good) / 3.0 (excellent)
+                checkmate_reward_func,      # +4.0 for immediate checkmate only
+                strict_format_reward_func,  # +0.5 for strict <think>/<answer> XML format
+                soft_format_reward_func,    # +0.5 for loose <think>/<answer> XML format
+            ],
+            args=self.training_args,
+            train_dataset=self.dataset,
+            peft_config=self.peft_config,   # tells GRPOTrainer to apply LoRA adapters to the model
+        )
 
 
 
@@ -486,13 +670,29 @@ class ChessRLTrainer:
         Run the full RL training loop.
         The GRPOTrainer internally handles the rollout, response generation, reward evaluation,
         and policy update.
+        Saves the final LoRA adapter weights + tokenizer to the output directory when done.
+        Also saves intermediate checkpoints every save_steps (set in GRPOConfig).
         """
         try:
             self.logger.info("Starting training...")
-            self.trainer.train()  # This will run the entire training loop.
-            self.logger.info("Training complete.")
+            self.trainer.train(resume_from_checkpoint=True)
+            self.logger.info("Training complete. Saving final model...")
+
+            # Save the trained LoRA adapter weights and tokenizer
+            # This saves ONLY the adapter (small, ~200MB), not the full 14B base model.
+            # To use later: load base model + load adapter with PeftModel.from_pretrained()
+            final_path = f"{self.output_dir}/final"
+            self.trainer.save_model(final_path)
+            self.tokenizer.save_pretrained(final_path)
+            self.logger.info(f"Final model saved to {final_path}")
+
         except KeyboardInterrupt:
-            self.logger.info("Training interrupted by KeyboardInterrupt.")
+            # Save on interrupt so we don't lose progress
+            self.logger.info("Training interrupted. Saving checkpoint...")
+            interrupt_path = f"{self.output_dir}/interrupted"
+            self.trainer.save_model(interrupt_path)
+            self.tokenizer.save_pretrained(interrupt_path)
+            self.logger.info(f"Interrupted checkpoint saved to {interrupt_path}")
             raise
             
 
@@ -502,8 +702,9 @@ class ChessRLTrainer:
 # ------------------------------------------
 def main():
     trainer = ChessRLTrainer(
-        model_name="derickio/llama-3.2-1b-instruct-finetune_png_10k_cot_1k",
-        dataset_path="src/data/chess/chess_rl_fen_pgn_prompt_100k.parquet",
+        model_name="Qwen/Qwen2.5-14B-Instruct",  # 14B instruct model — GRPO will teach it chess reasoning
+        dataset_path="src/data/chess/chess_rl_fen_pgn_prompt_10k.parquet",  # 10k dataset with precomputed eval coverage
+        max_rows=700,  # ~700 steps × 70s/step ≈ 14 hours on A100
     )
     trainer.train()
 
