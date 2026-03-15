@@ -5,11 +5,15 @@ showing the full <think>/<answer> output and checking move legality + quality.
 
 Usage:
   HF_HOME=/workspace/hf_cache python3 eval_trained_model.py
+  HF_HOME=/workspace/hf_cache python3 eval_trained_model.py --checkpoint 1000
+  HF_HOME=/workspace/hf_cache python3 eval_trained_model.py --adapter-path /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-500
+  HF_HOME=/workspace/hf_cache python3 eval_trained_model.py --num-positions 50
 """
 
 import os
 os.environ["HF_HOME"] = "/workspace/hf_cache"
 
+import argparse
 import re
 import sys
 import torch
@@ -18,8 +22,8 @@ import chess
 
 from unsloth import FastLanguageModel
 
-MODEL_NAME = "Qwen/Qwen2.5-14B-Instruct"
-ADAPTER_PATH = "/workspace/models/qwen-14B-GRPO-unsloth/final"
+DEFAULT_ADAPTER_DIR = "/workspace/models/qwen-14B-GRPO-unsloth"
+DEFAULT_CHECKPOINT = 1750
 DATASET_PATH = "src/data/chess/chess_rl_fen_pgn_prompt_10k.parquet"
 EVAL_TABLE_PATH = "src/data/chess/precomputed_move_evals_10k.parquet"
 
@@ -51,16 +55,43 @@ def check_move(fen, move_san, eval_table):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Evaluate a trained LoRA chess model")
+    parser.add_argument("--checkpoint", type=int, default=DEFAULT_CHECKPOINT,
+                        help=f"Checkpoint step number (default: {DEFAULT_CHECKPOINT})")
+    parser.add_argument("--adapter-path", type=str, default=None,
+                        help="Full path to adapter dir (overrides --checkpoint)")
+    parser.add_argument("--num-positions", type=int, default=10,
+                        help="Number of positions to evaluate (default: 10)")
+    parser.add_argument("--temperature", type=float, default=0.7)
+    parser.add_argument("--seed", type=int, default=42,
+                        help="Random seed for sampling test positions")
+    args = parser.parse_args()
+
+    if args.adapter_path:
+        adapter_path = args.adapter_path
+    else:
+        adapter_path = f"{DEFAULT_ADAPTER_DIR}/checkpoint-{args.checkpoint}"
+
+    is_hf_repo = "/" in adapter_path and not os.path.exists(adapter_path)
+    if not is_hf_repo and not os.path.exists(adapter_path):
+        print(f"ERROR: Adapter path does not exist: {adapter_path}")
+        available = sorted(
+            [d for d in os.listdir(DEFAULT_ADAPTER_DIR) if d.startswith("checkpoint-")],
+            key=lambda x: int(x.split("-")[1])
+        )
+        print(f"Available checkpoints: {', '.join(available)}")
+        sys.exit(1)
+
     print("=" * 70)
-    print("EVAL: Trained LoRA Model on Chess Positions")
+    print(f"EVAL: LoRA Checkpoint — {adapter_path}")
     print("=" * 70)
 
     eval_table = load_eval_table(EVAL_TABLE_PATH)
     print(f"Loaded {len(eval_table):,} precomputed evals")
 
-    print(f"\nLoading base model + LoRA adapter from {ADAPTER_PATH}...")
+    print(f"\nLoading base model + LoRA adapter...")
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name=ADAPTER_PATH,
+        model_name=adapter_path,
         max_seq_length=2560,
         load_in_4bit=True,
     )
@@ -68,18 +99,22 @@ def main():
     print(f"Model loaded. GPU: {torch.cuda.memory_allocated() / 1e9:.1f} GB")
 
     df = pd.read_parquet(DATASET_PATH)
-    print(f"Dataset: {len(df)} positions\n")
+    print(f"Dataset: {len(df)} positions")
 
-    test_indices = [0, 1, 10, 50, 100, 200, 500, 1000, 2000, 5000]
+    test_df = df.sample(n=min(args.num_positions, len(df)), random_state=args.seed)
+    print(f"Evaluating {len(test_df)} randomly sampled positions (seed={args.seed})\n")
+
     legal_count = 0
+    good_count = 0
     total_count = 0
+    eval_diffs = []
 
-    for idx in test_indices:
-        row = df.iloc[idx]
+    for i, (idx, row) in enumerate(test_df.iterrows()):
         fen = row["fen"]
         pgn = row["pgn"]
 
         board = chess.Board(fen)
+        side = "White" if board.turn else "Black"
         legal_moves = [board.san(m) for m in board.legal_moves]
 
         messages = [{"role": "user", "content": row["prompt"]}]
@@ -91,7 +126,7 @@ def main():
             outputs = model.generate(
                 **inputs,
                 max_new_tokens=2048,
-                temperature=0.7,
+                temperature=args.temperature,
                 top_p=0.9,
                 do_sample=True,
             )
@@ -107,11 +142,15 @@ def main():
         total_count += 1
         if legal:
             legal_count += 1
+        if eval_diff is not None and eval_diff >= 0:
+            good_count += 1
+        if eval_diff is not None:
+            eval_diffs.append(eval_diff)
 
         print(f"{'='*70}")
-        print(f"Position {idx} | FEN: {fen}")
+        print(f"[{i+1}/{len(test_df)}] FEN: {fen}")
+        print(f"Side to move: {side} | Legal moves: {len(legal_moves)}")
         print(f"PGN: {pgn[:100]}...")
-        print(f"Legal moves ({len(legal_moves)}): {', '.join(legal_moves[:15])}{'...' if len(legal_moves) > 15 else ''}")
         print(f"\n--- MODEL OUTPUT ---")
         print(response[:1500])
         if len(response) > 1500:
@@ -127,7 +166,13 @@ def main():
         print()
 
     print(f"{'='*70}")
-    print(f"SUMMARY: {legal_count}/{total_count} legal moves ({legal_count/total_count*100:.0f}%)")
+    print(f"SUMMARY — {adapter_path}")
+    print(f"{'='*70}")
+    print(f"  Legal moves:  {legal_count}/{total_count} ({legal_count/total_count*100:.0f}%)")
+    print(f"  Good moves:   {good_count}/{total_count} ({good_count/total_count*100:.0f}%) [eval_diff >= 0]")
+    if eval_diffs:
+        avg_diff = sum(eval_diffs) / len(eval_diffs)
+        print(f"  Avg eval_diff: {avg_diff:+.0f}cp (over {len(eval_diffs)} moves with eval data)")
     print(f"{'='*70}")
 
 

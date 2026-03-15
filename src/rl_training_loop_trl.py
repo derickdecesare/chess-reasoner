@@ -151,11 +151,14 @@ def count_xml(text: str) -> float:
         count += 0.125
     if text.count("\n<answer>\n") == 1:
         count += 0.125
-        # Penalize extra characters after </answer>
+    if text.count("\n</answer>\n") == 1:
+        # Penalize extra characters after </answer> only when trailing newline exists
         count -= len(text.split("\n</answer>\n")[-1]) * 0.001
     if text.count("\n</answer>") == 1:
         count += 0.125
-        count -= (len(text.split("\n</answer>")[-1]) - 1) * 0.001
+        # Penalize extra characters after the final </answer>
+        suffix = text.split("\n</answer>")[-1]
+        count -= max(0, len(suffix) - 1) * 0.001
     return count
 
 

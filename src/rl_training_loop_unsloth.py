@@ -17,9 +17,44 @@ Why this is faster:
     vLLM releases VRAM during backward pass, reclaims it during forward/generation
   - This can reduce per-step time from ~70s to ~15-20s (3-5x speedup)
 
-Requirements (in addition to the base requirements):
-  pip install unsloth vllm
-  
+RunPod setup (fresh pod):
+  Recommended pod config: A100-80GB, 50GB+ container disk, 100GB+ volume disk.
+  If container disk is only 20GB, pip installs will be very tight (~12GB of packages)
+  and you'll need to clear pip cache constantly. 50GB avoids this entirely.
+
+  # 1. Install vllm (pulls torch 2.10, correct CUDA libs, transformers, etc.)
+  pip install vllm
+
+  # 2. Install unsloth + its deps (must install AFTER vllm so versions align)
+  pip install --no-deps unsloth
+  pip install unsloth_zoo hf_transfer tyro xformers diffusers
+
+  # 3. Install flash-attn prebuilt wheel (building from source takes forever / fails)
+  #    Go to https://github.com/mjun0812/flash-attention-prebuild-wheels/releases
+  #    and pick the wheel matching your torch + CUDA + python version.
+  #    For torch 2.10, CUDA 12.8, Python 3.11:
+  pip install https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.7.16/flash_attn-2.8.3+cu128torch2.10-cp311-cp311-linux_x86_64.whl
+
+  # 4. Clear pip cache (reclaim space on root partition)
+  pip cache purge
+
+  # 5. Sanity check — should print "ALL CHECKS PASSED" with no errors
+  HF_HOME=/workspace/hf_cache python -c "
+  import os; os.environ['HF_HOME']='/workspace/hf_cache'
+  from unsloth import FastLanguageModel, PatchFastRL
+  PatchFastRL('GRPO', FastLanguageModel)
+  import vllm, torch
+  from trl import GRPOConfig, GRPOTrainer
+  from datasets import Dataset
+  print(f'torch={torch.__version__}, vllm={vllm.__version__}, cuda={torch.version.cuda}')
+  print(f'GPU: {torch.cuda.get_device_name(0)}')
+  print('ALL CHECKS PASSED')
+  "
+
+  # 6. Make sure /workspace isn't over quota (delete old checkpoints if needed)
+  touch /workspace/.quota_test && rm /workspace/.quota_test && echo "OK" || echo "QUOTA EXCEEDED"
+  du -sh /workspace/* | sort -rh
+
 Usage:
   tmux new -s training
   cd /root/chess-reasoner && HF_HOME=/workspace/hf_cache python3 src/rl_training_loop_unsloth.py
@@ -27,6 +62,35 @@ Usage:
   # Reattach: tmux attach -t training
   # Kill: tmux kill-session -t training
   # Check: tmux ls
+
+Workspace & checkpoint management:
+  # Check /workspace disk usage (RunPod volume — usually has a quota)
+  du -sh /workspace/* | sort -rh
+  df -h /workspace
+
+  # List checkpoints with sizes
+  du -sh /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-* | sort -t'-' -k2 -n
+
+  # List just checkpoint names (sorted)
+  ls -d /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-* | sort -t'-' -k2 -n
+
+  # Delete ALL checkpoints (keep final/ and interrupted/ if they exist)
+  rm -rf /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-*
+
+  # Delete all checkpoints EXCEPT the latest one
+  ls -d /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-* | sort -t'-' -k2 -n | head -n -1 | xargs rm -rf
+
+  # Delete a specific checkpoint
+  rm -rf /workspace/models/qwen-14B-GRPO-unsloth/checkpoint-300
+
+  # Check HF model cache size
+  du -sh /workspace/hf_cache/hub/models--* | sort -rh
+
+  # Test if /workspace is writable (quota not exceeded)
+  touch /workspace/.quota_test && rm /workspace/.quota_test && echo "OK" || echo "QUOTA EXCEEDED"
+
+  # Clear pip cache (lives on root partition, fills up fast on 20GB RunPod root)
+  pip cache purge
 """
 
 import os
@@ -223,7 +287,7 @@ class ChessRLTrainerUnsloth:
         """
         try:
             self.logger.info("Starting training with Unsloth + vLLM...")
-            self.trainer.train(resume_from_checkpoint="/workspace/models/qwen-14B-GRPO-unsloth/checkpoint-600")
+            self.trainer.train()
             self.logger.info("Training complete. Saving final model...")
 
             final_path = f"{self.output_dir}/final"
@@ -244,7 +308,7 @@ def main():
     trainer = ChessRLTrainerUnsloth(
         model_name="Qwen/Qwen2.5-14B-Instruct",
         dataset_path="src/data/chess/chess_rl_fen_pgn_prompt_10k.parquet",
-        max_rows=None,  # full 10k — ~2500 steps, resume from checkpoint-600 with rebalanced rewards
+        max_rows=None,  # full 10k — ~2500 steps
     )
     trainer.train()
 
